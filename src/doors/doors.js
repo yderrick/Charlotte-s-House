@@ -90,5 +90,7 @@ export function createDoorSystem(house) {
     return [p.start[0] + (p.dir[0] * p.length) / 2, p.start[1] + (p.dir[1] * p.length) / 2, z];
   }
 
-  return { doors, byId, toggle, update, segments, setAngle, condition, leafCentre };
+  const moving = () => doors.some((d) => d.angle !== d.target);
+
+  return { doors, byId, toggle, update, segments, setAngle, condition, leafCentre, moving };
 }

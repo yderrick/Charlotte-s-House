@@ -45,6 +45,15 @@ export function houseBoxes(floor) {
     }
   }
 
+  // The building's floor slabs above and below this floor, over everything built here.
+  // They close the tops of the walls so low sun cannot slip in over them.
+  const solid = boxes.filter((b) => b.role === "wall" || b.role === "frame" || b.role === "collider");
+  const ext = { x: [Math.min(...solid.map((b) => b.x[0])), Math.max(...solid.map((b) => b.x[1]))], y: [Math.min(...solid.map((b) => b.y[0])), Math.max(...solid.map((b) => b.y[1]))] };
+  const slab = floor.slabThickness ?? 0.4;
+  const top = Math.max(...floor.rooms.map((r) => r.ceilingHeight ?? floor.defaultCeilingHeight)) + SLAB;
+  add({ id: "slab:above", role: "slab", ...ext, z: [top, top + slab], collide: false });
+  add({ id: "slab:below", role: "slab", ...ext, z: [-SLAB - slab, -SLAB], collide: false });
+
   // Decorative doors that do not open: a panel proud of the wall on both faces
   for (const d of floor.doors.filter((d) => d.type === "dummy")) {
     const w = floor.walls.find((w) => w.id === d.wall);

@@ -14,7 +14,7 @@ A walkable, first-person 3D version of Charlotte's apartment (floor 21, Thunder 
 6. **The design notes win over `house.json` where they are clear.** `house.json` was written from Derrick's locked notes. Do not "improve" a value that has `"basis": "notes"`. Values with `"basis": "assumed"` may be changed, and the change goes in `ASSUMPTIONS.md`.
 7. **The furnishing rule is part of the brief:** nothing appears in the flat that is not in `house.json`. No extra props, art, plants, rugs or clocks for decoration.
 8. **No NPCs.** This location has no people. Do not add characters, routines or voices.
-9. **Walking must stay verified:** `npm run test:walk` must pass after any change to `house.json`, the layout, door or collision code.
+9. **Walking and sunlight must stay verified:** `npm run test:walk` and `npm run test:sun` must pass after any change to `house.json`, the layout, door, collision or time code.
 10. **Interactions are data-driven.** Every interactive object has `interact: { type, action }` in `house.json`. The type's prompts live in `house.interaction.types`. Code only supplies a handler per type (see `src/interact/interaction.js`). Never hard-code a prompt or a per-object special case.
 
 ## Coordinates and conventions (from `house.json`)
@@ -31,7 +31,10 @@ A walkable, first-person 3D version of Charlotte's apartment (floor 21, Thunder 
   - Items with a `states` list appear only in those states.
   - Items with `byState` take their position from the current state.
   - The state switch runs A–F.
-- **Compass:** +y is bearing 135° (SE). The sun direction comes from `site.latitude`, `site.longitude` and `site.timeZone`. The solar-position formula is in `tools/lib.mjs` (`sunPosition`); port it, don't re-derive it.
+- **Compass:** +y is bearing 135° (SE). The sun and moon come from `site.latitude`, `site.longitude` and `site.timeZone`, using `src/time/astro.js` (`sunPosition`, `moonPosition`). Use those; don't re-derive them.
+- **Time of day:**
+  - The clock (`src/time/clock.js`) holds a local date and minutes after midnight. `src/time/zone.js` turns that into UTC.
+  - `environmentAt(house, utcMs)` (`src/time/environment.js`) gives the sun and moon directions in plan space, plus every sky and light value, interpolated from the keyframes in `house.timeOfDay`. Tune the look there, not in code.
 - **Outdoors:** items are placed by bearing and distance from the centre of the window wall (`coordinateSystem.planFromCompass`). Ground is at `outdoors.groundZ` (−61.5).
 - **Doors:**
   - A hinged door's leaf hangs on the wall face on its `swingsInto` side, at the `hinge` end (`start` = `offsetAlongWall`).
@@ -64,15 +67,20 @@ src/
   curtains/builder.js  Three.js pleated curtain halves on the ceiling track
   interact/registry.js pure: collect every interact { type, action } from house.json; prompt lookup
   interact/interaction.js  look-at raycast, prompt, E key; handlers by type are passed in from main.js
-  lighting/flat.js     stage 1 flat lighting (hemisphere + ambient + one weak directional)
+  time/astro.js        pure: sun position (NOAA), moon position and phase, sidereal time
+  time/zone.js         pure: local time in house.site.timeZone <-> UTC (Intl)
+  time/clock.js        pure: game clock (date + minutes), speed steps, pause
+  time/environment.js  pure: sun/moon directions in plan space + sky and light values from house.json keyframes
+  time/sky.js          Three.js sky dome (gradient + sun glow), turning star field, moon disc with phase
+  lighting/daylight.js Three.js sun/moon key light (shadowed), daylight spots through the glass + bounce (shadowed), ambient, exposure; per-light shadow updates
+  lighting/flat.js     stage 1 flat lighting, still available with ?light=flat for checking geometry
   ui/hud.js            room name, position, compass heading, interaction prompt
-  lighting/            (stage 4) fixtures, switches, indicators, presets
-  time/                (stage 5) clock, sun, sky, seasons
-  outdoors/            (stage 5) street, roofs, church, lake sliver, hills, mast
+  ui/timebar.js        clock, date, time slider, pause / speed buttons, where the sun and moon are
+  lighting/            (stage 5) fixtures, switches, indicators, presets
+  outdoors/            (later) street, roofs, church, lake sliver, hills, mast, city lights
   audio/               (stage 6) positional sounds, schedules, triggers
   states/              (stage 7) story state A–F switch
-  interact/            (stage 7) look-at + click interactions
-tools/                 Node scripts (no dependencies): check-house.mjs, walk-test.mjs, floorplan.mjs, lib.mjs
+tools/                 Node scripts (no dependencies): check-house.mjs, walk-test.mjs, sun-test.mjs, floorplan.mjs, lib.mjs
 ```
 
 ## Stages
@@ -82,9 +90,9 @@ tools/                 Node scripts (no dependencies): check-house.mjs, walk-tes
 | 0 | Planning: `house.json`, `ASSUMPTIONS.md`, `floorplan.svg`, checker | `npm run check` passes; plan reviewed |
 | 1 | Grey box: Vite + Three.js; floors, ceilings, walls with door and window openings; furniture boxes; first-person controls; collision; flat light; room HUD | You can walk through every room and can't pass through any wall |
 | 2 | Doors and interaction: crosshair, look-at prompts, hinged and bifold leaves that swing, front door self-closes and shows red/green, door collision, curtains | Every door opens and closes; every room is reachable by opening doors |
-| 3 | Materials and colours from `house.json`; nicer furniture shapes inside the same footprints; cupboard and drawer handlers | Every item looks like what it is, at the size in the plan |
-| 4 | Lighting: every fixture, switches, indicators, shadows, the four lighting presets | Each switch works; presets match the notes |
-| 5 | Time of day: clock, sun from latitude and compass, sky, outdoor surroundings, seasons, frost | The morning sun comes in low from the left; night shows city lights |
+| 3 | Time of day: game clock and controls, sun and moon from latitude and compass, sky through dawn/day/sunset/dusk/night, stars, shadowed sunlight through the windows, dark windowless rooms | Standing in a room and scrubbing the time slider, the window light moves and changes colour |
+| 4 | Materials and colours from `house.json`; nicer furniture shapes inside the same footprints; cupboard and drawer handlers; outdoor surroundings, seasons, frost | Every item looks like what it is, at the size in the plan |
+| 5 | Lighting: every fixture, switches, indicators, the four lighting presets | Each switch works; presets match the notes |
 | 6 | Audio: positional sounds, schedules, triggers (buzz, kettle, record, fan) | Each sound plays from its place at its time |
 | 7 | Story states A–F and interactions (fridge, cabinets, kettle, record, pages, lamp) | Switching state moves and swaps everything listed in section 11 of the notes |
 
@@ -96,6 +104,7 @@ npm run dev         # start the Vite dev server, open the printed URL (http://lo
 npm run build       # production build to dist/  (npm run preview serves it)
 npm run check       # validate house.json (rooms, doors, reachability, swings, furniture)
 npm run test:walk   # walk test with the real collision and door code: rooms reachable by opening doors, no wall passable
+npm run test:sun    # sun test: rays from every floor spot toward the sun through the real walls, on four dates, hourly
 npm run floorplan   # regenerate floorplan.svg from house.json (optional arg: state letter)
 ```
 
@@ -168,4 +177,49 @@ npm run floorplan   # regenerate floorplan.svg from house.json (optional arg: st
   - You can only grab the curtains where they hang. When they are open, that means the stacks at the two ends of the glass.
   - The prompt for cupboards, switches, the fridge and other later types does not appear yet (no handler).
   - Story states still come from the `?state=` URL parameter; there is no in-game switch until stage 7.
+
+### Stage 3: Time of day (done, 13 Oct 2026)
+
+Stage numbering follows your request: time of day is stage 3, and materials and lighting fixtures moved to stages 4 and 5.
+
+- **Built:**
+  - **Game clock:** starts at the story state's date and time (state A: 18 Jun 2026, 07:30). One day passes in 24 real minutes by default, and the clock rolls over midnight into the next date.
+  - **Time bar** at the bottom of the screen:
+    - The clock and date, a 00–24 slider to jump to any minute, and « ❚❚ » buttons.
+    - The current speed, shown as "×60 · 1 day = 24 min".
+    - Where the sun and moon are, for example "Sun 18° high in the ENE · Moon 23° W, 21% lit".
+  - **Keys:** P pauses, [ slows down, ] speeds up (×15 to ×960). They work while walking. Press Esc to free the mouse for the slider.
+  - **Sun:** follows its real path for Thunder Bay on the clock's date, from the house's compass facing (SE) and latitude. Sunlight casts shadows, so window-shaped patches and soft frame stripes move across the floor and walls through the day. It is warm and orange when low, white when high.
+  - **Moon:** its real position and phase, drawn as a disc with its lit part. At night the shadowed light follows the moon, so moonlight falls through the glass.
+  - **Stars:** fade in at dusk and turn with the sky.
+  - **Sky:** changes colour through night, dawn, day, sunset (orange glow around the sun) and dusk (violet).
+  - **Daylight through the glass:** soft light from three sources outside the window, plus a bounce light that lifts the ceiling.
+    - Walls and closed curtains block it. The windowless bedroom, bathroom, closet and cupboards are clearly darker by day, and the bedroom with its door shut is nearly dark (as in the notes).
+    - A faint everywhere-light and eye adaptation keep night dark but not pitch black.
+  - **Performance:** each light's shadow re-renders only when needed. The sun's re-renders when it moves about 0.05°; the fixed daylight lights' only while a door or curtain moves. The heaviest normal frame went from 1,156 draw calls to 353. Use `?shadows=low|high` to change shadow quality.
+  - **URL options:** `?date=2026-12-21`, `?time=22:40`, `?speed=0`, `?shadows=low`, `?light=flat` (the old even lighting).
+- **How to run:** `npm install`, then `npm run dev`, and open http://localhost:5173/. Stand in the main room, press Esc, and drag the time slider.
+- **Verified:**
+  - `npm run test:sun` traces a ray toward the sun from every 10 cm of floor through the real walls, slabs, frames, closed doors and furniture. It does this hourly on 18 Jun, 18 Aug, 7 Nov and 21 Dec 2026. It found:
+    - Direct sun only in the main room, plus the hall through its open mouth on winter mornings.
+    - In the windowless rooms, nothing beyond the sliver under the bedroom door's gap.
+    - On 18 Jun the morning sun comes from the left: its patch sits at x 5.1 at 07:00 and moves to x 3.2 by 14:00.
+    - The sun leaves the glass between 14:00 and 15:00 as it swings behind the tower face.
+    - The low December sun reaches 5.5 m into the room, against 1.1 m at the June noon.
+    - Closed curtains leave only a thin line under the hem.
+  - The sun test fails, as it should, if the house is turned to face north-west.
+  - Browser, headless Chromium:
+    - Screenshots at 07:30, 08:00, 12:00, 14:00, 21:45, 22:40 and 01:00 show the patches moving and the colours changing. Also shot: the full moon on 29 Jun, and the dark bedroom at noon.
+    - Dragging the slider with the mouse moved the clock (12:00 mid-drag, 18:10 on release).
+    - P, [, ] and the buttons changed the speed as expected, including while walking.
+    - No console errors.
+  - `npm run check` and `npm run test:walk` still pass.
+- **Known problems:**
+  - Outside is still a plain ground 61.5 m below; the street, roofs, church, lake sliver, hills and city lights come with stage 4. It looks brown in low sun.
+  - Daylight bouncing around the room is approximated by one light in the middle of the main room, so corners and the far side of furniture are a little darker than in reality.
+  - The window frames' soft shadows from the daylight lights show as three faint stripes up close.
+  - The sun position is accurate to about a minute, the moon to about a degree.
+  - Shadows from the moon are as sharp as the sun's.
+  - Rare: when the sun or moon crosses the light threshold at dawn or dusk, the lighting shaders recompile once, which can cause a single short hitch.
+  - The bundle is about 611 kB (159 kB gzipped).
 

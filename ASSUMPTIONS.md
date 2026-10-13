@@ -43,6 +43,33 @@ New values added for doors and interaction (stage 2):
 - **Prompt wording:** "Open door", "Close door", "Open front door", "Open closet", "Open laundry cupboard", "Open coat cupboard", "Open curtains", "Close curtains".
 - **Later types:** prompts for the other interactive types (cupboards, drawers, switches, taps, kettle, record player and more) are in `house.json` under `interaction.types`, ready for their stages.
 
+New values added for time of day (stage 3):
+
+- **Clock:**
+  - It starts at the story state's date and time (state A: Thu 18 Jun 2026, 07:30).
+  - One day passes in 24 real minutes (×60), as you asked.
+  - Speeds step through ×0 (paused), 15, 30, 60, 120, 240, 480, 960.
+  - Keys: P pauses, [ is slower, ] is faster.
+- **Sun and moon:**
+  - Both are computed for Thunder Bay (48.38 N, 89.25 W, Eastern time) on the clock's real date. The moon's phase is real too (full on 29 Jun 2026).
+  - The moon is drawn about twice its real size (1.0°) so it reads on screen.
+  - Stars are placed at random, but they turn about the real pole for this latitude.
+- **Sky colours:** eight steps by sun altitude, from −18° (night) to 60° (midday), including a violet dusk and an orange glow around the sun at sunrise and sunset. The hex values are in `house.json`.
+- **Sunlight:**
+  - Strength and colour by altitude: deep orange at the horizon, warm white above 25°.
+  - It casts shadows, so window frames stripe the floor and walls.
+  - At night the same light follows the moon instead, scaled by how much of the moon is lit.
+- **Daylight through the glass:**
+  - Three soft spot lights 2 m outside the glass, plus a bounce light in the middle of the main room (5% of their strength) for the glow off the floor and ceiling.
+  - Both are blocked by walls and closed curtains, so windowless rooms stay dark.
+  - It fades with distance from the glass (decay 1.7).
+- **Night:**
+  - A faint city glow and starlight comes through the glass (strength 5).
+  - A faint everywhere-light (0.05 at night, 0.3 by day) keeps windowless rooms dim rather than black.
+  - Eye adaptation brightens the image ×3.0 at night, against ×1.15 by day.
+- **Shadow quality:** medium by default: sun 2048 px, daylight spots 1024 px, bounce 512 px. Use `?shadows=low` or `?shadows=high` to change it.
+- **Gaps that let light in:** the 2 cm gap under the bedroom door lets a 4 cm sliver of low winter sun onto the bedroom floor just inside the door. Low sun also gets under the curtain hem, making a thin line within 0.25 m of the closed curtains. Both are real gaps from the notes, so they are kept.
+
 ---
 
 ## Clashes in the notes (resolved)

@@ -456,7 +456,56 @@
 
   "timeOfDay": {
     "clockSpeed": 60,
-    "clockSpeedNote": "game seconds per real second; 60 means one game minute per real second",
+    "clockSpeedNote": "game seconds per real second; 60 means one full day passes in 24 real minutes",
+    "speedSteps": [0, 15, 30, 60, 120, 240, 480, 960],
+    "speedStepsNote": "the slower/faster keys move through these game-seconds-per-real-second values; 0 is paused",
+    "startFrom": "the current story state's defaultDateTime; ?date=YYYY-MM-DD and ?time=HH:MM in the URL override it",
+    "controls": { "pause": "KeyP", "slower": "BracketLeft", "faster": "BracketRight", "labels": { "pause": "P", "slower": "[", "faster": "]" } },
+    "sky": {
+      "note": "colours by sun altitude (degrees); zenith = overhead, horizon = low sky, glow = the sky around the sun",
+      "keyframes": [
+        { "sunAltitude": -18, "zenith": "#03050b", "horizon": "#080c18", "glow": "#080c18" },
+        { "sunAltitude": -12, "zenith": "#070c20", "horizon": "#141a36", "glow": "#20183a" },
+        { "sunAltitude": -6,  "zenith": "#16224a", "horizon": "#3c3d66", "glow": "#8a4a6c" },
+        { "sunAltitude": -2,  "zenith": "#2a4280", "horizon": "#9a6c78", "glow": "#f07a48" },
+        { "sunAltitude": 2,   "zenith": "#456cab", "horizon": "#e8a070", "glow": "#ffaa66" },
+        { "sunAltitude": 8,   "zenith": "#5a8bcc", "horizon": "#d4c0aa", "glow": "#ffdcae" },
+        { "sunAltitude": 20,  "zenith": "#4c86d2", "horizon": "#b6d0ea", "glow": "#fff0d6" },
+        { "sunAltitude": 60,  "zenith": "#3a76cc", "horizon": "#a8c6e6", "glow": "#ffffff" }
+      ],
+      "stars": { "count": 1600, "fullBelowSunAltitude": -15, "goneAboveSunAltitude": -6 },
+      "basis": "assumed"
+    },
+    "sunLight": {
+      "note": "direct sunlight by sun altitude; intensity is in Three.js directional-light units",
+      "keyframes": [
+        { "sunAltitude": -1, "intensity": 0.0, "colour": "#ff8a40" },
+        { "sunAltitude": 1,  "intensity": 0.5, "colour": "#ff9a50" },
+        { "sunAltitude": 5,  "intensity": 1.6, "colour": "#ffb26b" },
+        { "sunAltitude": 12, "intensity": 2.6, "colour": "#ffd2a0" },
+        { "sunAltitude": 25, "intensity": 3.2, "colour": "#fff0dc" },
+        { "sunAltitude": 60, "intensity": 3.6, "colour": "#fff8f0" }
+      ],
+      "basis": "assumed"
+    },
+    "skyFill": {
+      "note": "diffuse daylight coming in through the glass: a row of shadowed spot lights just outside the window (several, so window-frame shadows stay soft), plus a shadowed bounce light inside each windowed room for the glow off the floor and ceiling. Colour follows the sky's horizon colour. Intensity is the total for the row.",
+      "keyframes": [
+        { "sunAltitude": -18, "intensity": 0.0 },
+        { "sunAltitude": -8,  "intensity": 3.0 },
+        { "sunAltitude": -2,  "intensity": 14.0 },
+        { "sunAltitude": 5,   "intensity": 55.0 },
+        { "sunAltitude": 20,  "intensity": 80.0 },
+        { "sunAltitude": 60,  "intensity": 85.0 }
+      ],
+      "nightGlow": { "intensity": 5.0, "colour": "#7a6e78", "note": "city glow and starlight through the glass at night" },
+      "source": { "count": 3, "behindGlass": 2.0, "height": 2.45, "aimAt": { "intoRoom": 5.0, "height": 0.0 }, "coneDeg": 110, "decay": 1.7, "note": "decay: how fast the light fades with distance from the glass (2 = physical point light)" },
+      "bounce": { "fractionOfFill": 0.05, "height": 1.7, "note": "light bounced off the sunlit floor and walls; also lifts the ceiling" },
+      "basis": "assumed"
+    },
+    "moonLight": { "maxIntensity": 0.35, "colour": "#a9badf", "fillAtFullMoon": 1.2, "discDeg": 1.0, "note": "scaled by the lit fraction of the moon and faded near the horizon", "basis": "assumed" },
+    "indoorAmbient": { "night": 0.05, "day": 0.3, "colour": "#d8dce4", "note": "the faint everywhere-light (bounce, starlight) that keeps windowless rooms from going pitch black", "basis": "assumed" },
+    "exposure": { "night": 3.0, "day": 1.15, "note": "the eye adapting: night is dark but readable", "basis": "assumed" },
     "presets": [
       { "id": "morning", "time": "07:30" },
       { "id": "noon", "time": "13:58", "note": "solar noon in June (clock is about 2 hours ahead of the sun here in summer)" },

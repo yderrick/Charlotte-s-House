@@ -8,6 +8,7 @@ const MATERIALS = {
   floor: new THREE.MeshLambertMaterial({ color: 0x8c8c8c }),
   ceiling: new THREE.MeshLambertMaterial({ color: 0xf0f0f0 }),
   wall: new THREE.MeshLambertMaterial({ color: 0xdcdcdc }),
+  slab: new THREE.MeshLambertMaterial({ color: 0x9c9c9c }),
   frame: new THREE.MeshLambertMaterial({ color: 0x505050 }),
   dummyDoor: new THREE.MeshLambertMaterial({ color: 0xa8a8a8 }),
   glass: new THREE.MeshLambertMaterial({ color: 0xe8ecee, transparent: true, opacity: 0.18, depthWrite: false }),
@@ -26,7 +27,7 @@ export function buildHouse(house) {
     group.add(mesh);
   }
 
-  // Ground far below the window so the view is not empty (outdoors comes in stage 5).
+  // Ground far below the window so the view is not empty (outdoor surroundings come in a later stage).
   const groundZ = house.outdoors?.groundZ ?? -60;
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), new THREE.MeshLambertMaterial({ color: 0x9a9a9a }));
   ground.rotation.x = -Math.PI / 2;

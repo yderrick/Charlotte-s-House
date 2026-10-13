@@ -47,5 +47,7 @@ export function createCurtainSystem(house, state) {
 
   const condition = () => (target > 0.5 ? "open" : "closed");
 
-  return { def: c, halves, width, extent, toggle, update, colliders, condition, setOpen: (open) => { target = open ? 1 : 0; for (const h of halves) h.openness = target; } };
+  const moving = () => halves.some((h) => h.openness !== target);
+
+  return { def: c, halves, width, extent, toggle, update, colliders, condition, moving, setOpen: (open) => { target = open ? 1 : 0; for (const h of halves) h.openness = target; } };
 }

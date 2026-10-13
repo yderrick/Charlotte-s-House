@@ -105,27 +105,7 @@ export function hingedDoorGeom(w, d, rooms) {
   return { hinge, free, mid, hingeFace, freeFace, n: [sign * f.nx, sign * f.ny], frame: f };
 }
 
-// NOAA solar position (accurate to about a minute). Returns degrees.
-export function sunPosition(dateUtcMs, lat, lon) {
-  const r = Math.PI / 180;
-  const jd = dateUtcMs / 86400000 + 2440587.5, T = (jd - 2451545) / 36525;
-  const L0 = (280.46646 + T * (36000.76983 + T * 0.0003032)) % 360;
-  const M = 357.52911 + T * (35999.05029 - 0.0001537 * T);
-  const e = 0.016708634 - T * (0.000042037 + 0.0000001267 * T);
-  const C = Math.sin(M * r) * (1.914602 - T * (0.004817 + 0.000014 * T)) + Math.sin(2 * M * r) * (0.019993 - 0.000101 * T) + Math.sin(3 * M * r) * 0.000289;
-  const om = 125.04 - 1934.136 * T, lam = L0 + C - 0.00569 - 0.00478 * Math.sin(om * r);
-  const eps = 23 + (26 + (21.448 - T * (46.815 + T * (0.00059 - T * 0.001813))) / 60) / 60 + 0.00256 * Math.cos(om * r);
-  const dec = Math.asin(Math.sin(eps * r) * Math.sin(lam * r));
-  const y = Math.tan((eps * r) / 2) ** 2;
-  const eot = (4 / r) * (y * Math.sin(2 * L0 * r) - 2 * e * Math.sin(M * r) + 4 * e * y * Math.sin(M * r) * Math.cos(2 * L0 * r) - 0.5 * y * y * Math.sin(4 * L0 * r) - 1.25 * e * e * Math.sin(2 * M * r));
-  const d = new Date(dateUtcMs), mins = d.getUTCHours() * 60 + d.getUTCMinutes() + d.getUTCSeconds() / 60;
-  let tst = (mins + eot + 4 * lon) % 1440;
-  if (tst < 0) tst += 1440;
-  const ha = tst / 4 - 180;
-  const zen = Math.acos(Math.sin(lat * r) * Math.sin(dec) + Math.cos(lat * r) * Math.cos(dec) * Math.cos(ha * r));
-  const az = (Math.atan2(Math.sin(ha * r), Math.cos(ha * r) * Math.sin(lat * r) - Math.tan(dec) * Math.cos(lat * r)) / r + 180) % 360;
-  return { altitude: 90 - zen / r, azimuth: az };
-}
+export { sunPosition } from "../time/astro.js";
 
 // Plan direction (dx, dy) for a compass bearing, given the house's facing bearing (+y).
 export function planDirFromBearing(bearing, facing) {
