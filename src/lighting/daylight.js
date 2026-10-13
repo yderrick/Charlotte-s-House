@@ -93,7 +93,7 @@ export function addDaylight(scene, house, quality = "medium") {
   };
 
   // castersMoved: a door or curtain is moving, so every shadow is stale.
-  function update(env, renderer, castersMoved = false) {
+  function update(env, castersMoved = false) {
     key.color.set(env.key.colour);
     key.intensity = env.key.intensity;
     const dir = planToThree(...env.key.dir).normalize();
@@ -111,7 +111,6 @@ export function addDaylight(scene, house, quality = "medium") {
     }
     ambient.color.set(env.ambient.colour);
     ambient.intensity = env.ambient.intensity;
-    renderer.toneMappingExposure = env.exposure;
     if (dir.angleTo(lastDir) > 0.0008) { // about 0.05 degrees
       lastDir.copy(dir);
       key.shadow.needsUpdate = true;

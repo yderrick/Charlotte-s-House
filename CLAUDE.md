@@ -14,7 +14,7 @@ A walkable, first-person 3D version of Charlotte's apartment (floor 21, Thunder 
 6. **The design notes win over `house.json` where they are clear.** `house.json` was written from Derrick's locked notes. Do not "improve" a value that has `"basis": "notes"`. Values with `"basis": "assumed"` may be changed, and the change goes in `ASSUMPTIONS.md`.
 7. **The furnishing rule is part of the brief:** nothing appears in the flat that is not in `house.json`. No extra props, art, plants, rugs or clocks for decoration.
 8. **No NPCs.** This location has no people. Do not add characters, routines or voices.
-9. **Walking and sunlight must stay verified:** `npm run test:walk` and `npm run test:sun` must pass after any change to `house.json`, the layout, door, collision or time code.
+9. **Walking, sunlight and lights must stay verified:** `npm run test:walk`, `npm run test:sun` and `npm run test:lights` must pass after any change to `house.json`, the layout, door, collision, time or lighting code.
 10. **Interactions are data-driven.** Every interactive object has `interact: { type, action }` in `house.json`. The type's prompts live in `house.interaction.types`. Code only supplies a handler per type (see `src/interact/interaction.js`). Never hard-code a prompt or a per-object special case.
 
 ## Coordinates and conventions (from `house.json`)
@@ -42,8 +42,14 @@ A walkable, first-person 3D version of Charlotte's apartment (floor 21, Thunder 
   - Leaf positions come from `src/doors/kinematics.js`; both rendering and collision use it.
 - **Interaction:** a ray from the centre of the view, up to `interaction.maxDistance` (2.0 m). The first thing hit decides; a wall in the way blocks it. Meshes carry `userData.interactId` = the object's id.
 - **Lights:**
-  - `lumens` is the source of truth. With `renderer.physicallyCorrectLights` / `useLegacyLights = false`, a point light's intensity in candela is `lumens / (4π)`, and a spot light's is `lumens / π` (approximately).
+  - `lumens` is the source of truth.
+  - A light's Three.js intensity is `lumens / π` (spot) or `lumens / (4π)` (point), times `indoorLighting.photometricScale` (the scene's units are not physical).
   - `colourK` is the colour temperature; `colour` is its sRGB approximation.
+  - `fitting` picks the visible fitting (recessed, flush, bar, strip, taskLamp, appliance), and `emit` picks the light type.
+- **Indoor light and walls:**
+  - Every Lambert material is patched by `src/lighting/roomMask.js`. An indoor light only lights surfaces in its own room, or in a neighbour straight through an open doorway.
+  - Each light carries its room in its `distance` field (1000 + room index). Don't set `distance` on indoor lights for anything else.
+  - The same rule in JS is `lightReach()` in `src/lighting/rooms.js`. Shadows are for looks only, and limited to the lights in `indoorLighting.shadows.lights`.
 
 ## Module layout
 
@@ -73,14 +79,18 @@ src/
   time/environment.js  pure: sun/moon directions in plan space + sky and light values from house.json keyframes
   time/sky.js          Three.js sky dome (gradient + sun glow), turning star field, moon disc with phase
   lighting/daylight.js Three.js sun/moon key light (shadowed), daylight spots through the glass + bounce (shadowed), ambient, exposure; per-light shadow updates
+  lighting/rooms.js    pure: room graph, doorways between rooms, lightReach() (how much of a light reaches a point)
+  lighting/schedule.js pure: dusk/dawn from the sun, schedule levels for automatic lights
+  lighting/lightstate.js pure: which lights are on, switch/gang/lamp -> lights, start-up preset, intensities
+  lighting/roomMask.js Three.js shader patch: indoor lights stop at walls and pass through open doorways; per-room soft fill
+  lighting/fixtures.js Three.js fittings, lights, indicator glows, switch plates; eye-adaptation light level
   lighting/flat.js     stage 1 flat lighting, still available with ?light=flat for checking geometry
   ui/hud.js            room name, position, compass heading, interaction prompt
   ui/timebar.js        clock, date, time slider, pause / speed buttons, where the sun and moon are
-  lighting/            (stage 5) fixtures, switches, indicators, presets
   outdoors/            (later) street, roofs, church, lake sliver, hills, mast, city lights
   audio/               (stage 6) positional sounds, schedules, triggers
   states/              (stage 7) story state A–F switch
-tools/                 Node scripts (no dependencies): check-house.mjs, walk-test.mjs, sun-test.mjs, floorplan.mjs, lib.mjs
+tools/                 Node scripts (no dependencies): check-house.mjs, walk-test.mjs, sun-test.mjs, lights-test.mjs, floorplan.mjs, lib.mjs
 ```
 
 ## Stages
@@ -91,8 +101,8 @@ tools/                 Node scripts (no dependencies): check-house.mjs, walk-tes
 | 1 | Grey box: Vite + Three.js; floors, ceilings, walls with door and window openings; furniture boxes; first-person controls; collision; flat light; room HUD | You can walk through every room and can't pass through any wall |
 | 2 | Doors and interaction: crosshair, look-at prompts, hinged and bifold leaves that swing, front door self-closes and shows red/green, door collision, curtains | Every door opens and closes; every room is reachable by opening doors |
 | 3 | Time of day: game clock and controls, sun and moon from latitude and compass, sky through dawn/day/sunset/dusk/night, stars, shadowed sunlight through the windows, dark windowless rooms | Standing in a room and scrubbing the time slider, the window light moves and changes colour |
-| 4 | Materials and colours from `house.json`; nicer furniture shapes inside the same footprints; cupboard and drawer handlers; outdoor surroundings, seasons, frost | Every item looks like what it is, at the size in the plan |
-| 5 | Lighting: every fixture, switches, indicators, the four lighting presets | Each switch works; presets match the notes |
+| 4 | Indoor lights: every fixture with a visible fitting, switches by the doors, warm bulbs, light that stops at walls and spills through open doors, scheduled lights, a few chosen shadows | At night you can walk through the flat switching lights on and off, and each room looks lit or dark |
+| 5 | Materials and colours from `house.json`; nicer furniture shapes inside the same footprints; cupboard and drawer handlers; outdoor surroundings, seasons, frost; preset picker | Every item looks like what it is, at the size in the plan |
 | 6 | Audio: positional sounds, schedules, triggers (buzz, kettle, record, fan) | Each sound plays from its place at its time |
 | 7 | Story states A–F and interactions (fridge, cabinets, kettle, record, pages, lamp) | Switching state moves and swaps everything listed in section 11 of the notes |
 
@@ -105,6 +115,7 @@ npm run build       # production build to dist/  (npm run preview serves it)
 npm run check       # validate house.json (rooms, doors, reachability, swings, furniture)
 npm run test:walk   # walk test with the real collision and door code: rooms reachable by opening doors, no wall passable
 npm run test:sun    # sun test: rays from every floor spot toward the sun through the real walls, on four dates, hourly
+npm run test:lights # light test: switches by doors, every light switchable, light stops at walls and spills through open doors, schedules
 npm run floorplan   # regenerate floorplan.svg from house.json (optional arg: state letter)
 ```
 
@@ -222,4 +233,60 @@ Stage numbering follows your request: time of day is stage 3, and materials and 
   - Shadows from the moon are as sharp as the sun's.
   - Rare: when the sun or moon crosses the light threshold at dawn or dusk, the lighting shaders recompile once, which can cause a single short hitch.
   - The bundle is about 611 kB (159 kB gzipped).
+
+### Stage 4: Indoor lights (done, 13 Oct 2026)
+
+Stage numbering again follows your request: indoor lights are stage 4, and materials, outdoors and presets moved to stage 5.
+
+- **Built:**
+  - **Every fitting from `house.json`, with the light it gives off:**
+    - Recessed downlights (2 in the hall, 3 over the kitchen galley, 5 in the corridor).
+    - Flush round ceiling lights (living area, bedroom, walk-in closet).
+    - The bathroom light bar above the mirror cabinet.
+    - The under-cupboard strip.
+    - Her desk lamp: base, stem and shade, aimed as `house.json` says. It is in the bedroom in states A–C and turned to the wall in D–F.
+    - Fittings glow when on and go plain white when off.
+    - Indicator glows with no light of their own: the TV's red standby dot, the bedroom climate panel, and in states D and E the dimmed monitor screen and the phone face up. The door panel's red/green light comes from stage 2.
+  - **Switches:** plates on the walls next to the room doors, worked through the stage 2 interaction system (E):
+    - Hall, by the front door.
+    - Main room, by the hall mouth: two gangs, "Turn kitchen lights on" and "Turn living-room light on".
+    - Bedroom, just inside the door. Bathroom, inside its door. Walk-in closet, beside its door.
+    - Under-cupboard lights, a switch under the cupboards.
+    - The desk lamp is switched on the lamp itself.
+    - Rockers tip when switched.
+  - **Warm bulbs:** 2700 K for household bulbs. The under-cupboard strip stays cold white, as in the notes, and the corridor stays neutral.
+  - **Light stays in its room and spills through doorways.** A shader patch (`src/lighting/roomMask.js`) lets an indoor light reach only its own room, or a next-door room along the line of sight through an open doorway. An open door throws a wedge of light across the next room's floor, fading as the door closes. A wall between rooms lets no light through. Each room also gets a soft fill from its own lamps, so lit rooms don't have black corners; this isn't meant to be realistic.
+  - **Automatic lights:** a schedule format in `house.json` (`indoorLighting.schedules`): periods from dusk, dawn or a clock time, with levels. Dusk and dawn come from the real sun for the date. The flat has no porch and nothing automatic of its own, so the building's corridor lights use it: 60% by day, full from dusk (22:19 on 18 Jun, 17:21 on 21 Dec), 30% from 01:00 until dawn.
+  - **Shadows: only 2 indoor lights cast them.**
+    - The living-room ceiling light: the biggest, most-seen room, where the couch and furniture throw the most shadows.
+    - The desk lamp: low and close, so its shadows define the scene (the lamp to the wall in Phase 6, toward the bed in Ch1 Sc4).
+    - Since walls already stop light without shadows, the downlights, the bathroom bar, the closet and the corridor lights skip them. That keeps the flat at 7 shadow maps in total (5 for daylight, 2 indoor), well inside the GPU's texture limit.
+    - Indoor shadows only re-render when a light is switched on or a door or curtain moves.
+  - **Start-up lights:** the lighting preset from the notes for the state's opening moment. State D starts with only the desk lamp on; state A at 07:30 starts dark.
+  - **Eye adaptation:** walking into a lit room at night brings the exposure down from dark-adapted, so lit rooms look lit and dark rooms look dark.
+- **How to run:** `npm install`, then `npm run dev`, and open http://localhost:5173/?time=23:30 (or drag the time slider to night). Walk to a switch by a door and press E. Try `?state=D` for the Phase 6 night with only the desk lamp on.
+- **Verified:**
+  - `npm run test:lights`:
+    - All 17 emitting lights sit in their rooms in every state, and every manual light has a switch or lamp.
+    - Every wall switch is within 0.4 m of a door of its room.
+    - The bedroom light doesn't reach the main room with the door shut, does spill through the open door, and only onto floor in line with the doorway.
+    - The same holds for the hall light into the bathroom and the closet light into the bedroom. The kitchen lights reach the hall through the hall mouth.
+    - The corridor schedule gives the right levels by day, from dusk and after 01:00, in June and December.
+    - The state D and state A start-up presets are right, and the kitchen gang works only the kitchen lights.
+  - Browser, headless Chromium, real E key: all 7 switch controls showed the right prompt, turned their lights and glow on, then off. The desk lamp in state D started on, prompted "E – Turn lamp off", and turned off. The corridor lights read 0.6 / 1.0 / 0.3 / 1.0 of full at noon / 23:00 / 02:00 / a December 18:00. No console errors.
+  - Night screenshots:
+    - The main room with every light on, seen from the hall.
+    - The hall downlights with light spilling out of the open bathroom.
+    - A lit bedroom throwing a wedge of light through its door into the dark main room.
+    - A dark bedroom seen from inside, with the lit main room beyond its door.
+    - The Phase 6 desk lamp making a pool of light on the wall.
+  - Daytime with the lights off looks as it did in stage 3.
+  - `npm run check`, `npm run test:walk` and `npm run test:sun` still pass.
+- **Known problems:**
+  - Light passes through only one doorway: the kitchen light reaches the hall, but not on into the bathroom beyond it.
+  - Lights aren't realistic (by choice). The soft fill is a flat per-room glow, and downlight cones leave scalloped edges on the walls.
+  - The fridge's inside light exists but stays off until the fridge door opens (stage 7).
+  - The lighting presets are only applied at start-up; there is no in-game preset picker yet.
+  - Each light's room is stored in its Three.js `distance` value (see conventions). The desk lamp's shadow camera therefore uses a 1000 m far plane, which costs a little shadow precision.
+  - The bundle is about 634 kB (167 kB gzipped).
 

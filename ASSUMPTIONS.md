@@ -70,6 +70,28 @@ New values added for time of day (stage 3):
 - **Shadow quality:** medium by default: sun 2048 px, daylight spots 1024 px, bounce 512 px. Use `?shadows=low` or `?shadows=high` to change it.
 - **Gaps that let light in:** the 2 cm gap under the bedroom door lets a 4 cm sliver of low winter sun onto the bedroom floor just inside the door. Low sun also gets under the curtain hem, making a thin line within 0.25 m of the closed curtains. Both are real gaps from the notes, so they are kept.
 
+New values added for indoor lights (stage 4):
+
+- **Colour:**
+  - Household bulbs are now warm 2700 K (`#FFC38A`), as you asked: hall, kitchen downlights, living and bedroom ceiling lights, bathroom bar, closet light, and her desk lamp. They were 4000 K, my own earlier guess.
+  - The under-cupboard strip stays cold white 5000 K, from the notes.
+  - The building's corridor lights stay neutral 4000 K.
+- **Brightness:** lumens are unchanged. The scene's light units aren't physical (the sun is 3.6), so each lamp's strength is lumens × 0.04 (`indoorLighting.photometricScale`).
+- **Fittings:**
+  - Recessed downlights: 12 cm trims with a glowing lens.
+  - Flush ceiling lights: 35 cm white glass discs.
+  - Bathroom light bar: 60 cm.
+  - Under-cupboard strip: lights the counter from 2 points along its length.
+  - Desk lamp: black base, stem and conical shade around the bulb, pointed at its aim point.
+  - Every fitting glows when on and is plain white when off.
+- **Switch plates:** 8 × 12 cm, with rockers that tip when switched. The main switch by the hall mouth is a two-gang plate (kitchen / living). The under-cupboard switch is on the underside of the cupboards, so it isn't by a door.
+- **Starting lights:** the lighting preset in the notes for the story state's opening moment, if there is one. State D at 23:00 starts with only the desk lamp on (Phase 6 night). State E at 14:30 starts with the desk lamp and the under-cupboard lights on (Phase 7 afternoon). Otherwise every light starts off.
+- **Automatic lights:** nothing in the flat itself is automatic, and there is no porch. The only scheduled lights are the building's corridor lights: 60% by day, full from dusk (sun 3° below the horizon), down to 30% from 01:00 until dawn.
+- **Light stops at walls:** an indoor light only reaches its own room, or a next-door room straight through an open doorway (scaled by how open the door is).
+- **Soft fill:** each room also gets a soft fill from its own lights (lumens × 0.0015 per m² of floor), plus 30% of a neighbour's through an open doorway.
+- **Eye adaptation:** walking into a lit room at night brings the exposure down from the dark-adapted ×3.0 to ×1.1 over about 1.2 s.
+- **Shadows:** only the living-room ceiling light and the desk lamp cast them (see the reasons in `house.json`, `indoorLighting.shadows.why`).
+
 ---
 
 ## Clashes in the notes (resolved)

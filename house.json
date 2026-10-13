@@ -89,6 +89,33 @@
     "basis": "assumed"
   },
 
+  "indoorLighting": {
+    "photometricScale": 0.04,
+    "photometricNote": "scene units are not physical (the sun is 3.6); a light's Three.js intensity is lumens/pi (spot) or lumens/(4 pi) (point) times this scale",
+    "emitterDrop": 0.03,
+    "barOffset": 0.2,
+    "bounce": { "perLumenPerSquareMetre": 0.0015, "throughOpenDoor": 0.3, "note": "soft light bounced off walls and floor: each room gets a glow in its lights' colour, from the lumens switched on in it divided by its floor area; a share reaches next-door rooms through open doorways" },
+    "barNote": "a wall light bar's light sits this far out from the wall, so it lights the mirror cabinet below it",
+    "fittingGlow": 4.0,
+    "roomMask": { "normalOffset": 0.25, "note": "indoor lights only reach surfaces in their own room, or in a neighbour through an open doorway along the line of sight; normalOffset decides which room a surface faces" },
+    "shadows": {
+      "lights": ["L_living", "L_desk_lamp"],
+      "why": "walls already stop every indoor light (room mask), so shadows are only for looks. The living-room light hangs over the couch in the biggest, most-seen room and throws the most furniture shadows; the desk lamp is low and close, so its shadows define the scene (the lamp turned to the wall in Phase 6, toward the bed in Ch1 Sc4). The downlights over open floor, the bathroom bar, the closet light and the corridor add little shadow detail.",
+      "pointMapSize": 512,
+      "spotMapSize": 1024
+    },
+    "adaptation": { "litExposure": 1.1, "levelForFullAdaptation": 0.6, "levelStart": 0.04, "seconds": 1.2, "note": "the eye adjusting: walking into a lit room at night brings exposure down from the dark-adapted value" },
+    "twilight": { "duskSunAltitude": -3, "dawnSunAltitude": -3 },
+    "schedules": {
+      "corridor": {
+        "note": "the building runs the corridor lights; nothing in the flat itself is automatic (there is no porch). Full at dusk, down to a night level at 01:00, daytime level otherwise",
+        "default": 0.6,
+        "periods": [ { "from": "dusk", "to": "01:00", "level": 1.0 }, { "from": "01:00", "to": "dawn", "level": 0.3 } ]
+      }
+    },
+    "basis": "assumed"
+  },
+
   "player": {
     "eyeHeight": 1.65,
     "headHeight": 1.77,
@@ -267,49 +294,38 @@
       "stairs": [],
 
       "lights": [
-        { "id": "L_hall_1",  "room": "hall",     "type": "ceiling", "fixture": "recessed downlight", "position": [0.6, 1.4, 2.6], "colourK": 4000, "colour": "#FFD1A3", "lumens": 650,  "beamDeg": 100, "switch": "S_hall", "basis": "notes+assumed" },
-        { "id": "L_hall_2",  "room": "hall",     "type": "ceiling", "fixture": "recessed downlight", "position": [0.6, 3.2, 2.6], "colourK": 4000, "colour": "#FFD1A3", "lumens": 650,  "beamDeg": 100, "switch": "S_hall", "basis": "notes+assumed" },
-        { "id": "L_kit_1",   "room": "main",     "type": "ceiling", "fixture": "recessed downlight", "position": [1.2, 5.8, 2.6], "colourK": 4000, "colour": "#FFD1A3", "lumens": 800,  "beamDeg": 90,  "switch": "S_main.kitchen", "basis": "notes+assumed" },
-        { "id": "L_kit_2",   "room": "main",     "type": "ceiling", "fixture": "recessed downlight", "position": [1.2, 7.2, 2.6], "colourK": 4000, "colour": "#FFD1A3", "lumens": 800,  "beamDeg": 90,  "switch": "S_main.kitchen", "basis": "notes+assumed" },
-        { "id": "L_kit_3",   "room": "main",     "type": "ceiling", "fixture": "recessed downlight", "position": [1.2, 8.6, 2.6], "colourK": 4000, "colour": "#FFD1A3", "lumens": 800,  "beamDeg": 90,  "switch": "S_main.kitchen", "basis": "notes+assumed" },
-        { "id": "L_undercab","room": "main",     "type": "under-cabinet", "fixture": "LED strip under the upper cupboards", "from": [0.3, 5.3, 1.43], "to": [0.3, 8.25, 1.43], "colourK": 5000, "colour": "#FFE4CE", "lumens": 900, "note": "cold white", "switch": "S_undercab", "basis": "notes+assumed" },
-        { "id": "L_living",  "room": "main",     "type": "ceiling", "fixture": "flush, round, white glass, 0.35 m", "position": [5.2, 7.2, 2.6], "colourK": 4000, "colour": "#FFD1A3", "lumens": 1500, "switch": "S_main.living", "basis": "notes+assumed" },
-        { "id": "L_bed",     "room": "bedroom",  "type": "ceiling", "fixture": "flush, round, white glass, 0.35 m", "position": [4.75, 2.2, 2.6], "colourK": 4000, "colour": "#FFD1A3", "lumens": 1500, "switch": "S_bed", "basis": "notes+assumed" },
-        { "id": "L_bath_bar","room": "bathroom", "type": "wall", "fixture": "light bar above the mirror, 0.6 m", "position": [2.2, 2.33, 1.79], "colourK": 4000, "colour": "#FFD1A3", "lumens": 1000, "switch": "S_bath", "linkedSound": "extractor_fan", "basis": "notes+assumed" },
-        { "id": "L_closet",  "room": "walkin",   "type": "ceiling", "fixture": "small flush light", "position": [2.5, 3.4, 2.6], "colourK": 4000, "colour": "#FFD1A3", "lumens": 400, "switch": "S_closet", "basis": "assumed", "note": "not in the notes' light list; added so the walk-in is not pitch black" },
-        { "id": "L_desk_lamp", "room": "bedroom|main", "type": "lamp", "fixture": "black adjustable task lamp (hers, a work item)", "colourK": 3000, "colour": "#FFB46B", "lumens": 450, "beamDeg": 55, "switch": "on the lamp",
-          "byState": {
-            "A": { "room": "bedroom", "position": [4.57, 0.18, 1.2], "aimAt": [4.0, 0.3, 0.75], "note": "Ch1 Sc4: can be turned toward the bed, aimAt [5.4, 2.2, 0.6]" },
-            "B": { "room": "bedroom", "position": [4.57, 0.18, 1.2], "aimAt": [4.0, 0.3, 0.75] },
-            "C": { "room": "bedroom", "position": [4.57, 0.18, 1.2], "aimAt": [4.0, 0.3, 0.75] },
-            "D": { "room": "main", "position": [6.37, 9.52, 1.2], "aimAt": [6.5, 9.4, 1.3], "note": "turned to face the wall (LOCKED)" },
-            "E": { "room": "main", "position": [6.37, 9.52, 1.2], "aimAt": [6.5, 9.4, 1.3] },
-            "F": { "room": "main", "position": [6.37, 9.52, 1.2], "aimAt": [6.5, 9.4, 1.3], "startsOn": false }
-          },
-          "basis": "notes+assumed" },
-        { "id": "L_fridge",  "room": "main", "type": "appliance", "fixture": "fridge interior light, on when the fridge door is open", "position": [0.4, 4.88, 1.6], "colourK": 5000, "colour": "#FFE4CE", "lumens": 100, "basis": "notes+assumed" },
-
-        { "id": "I_panel_in",  "room": "hall",    "type": "indicator", "fixture": "door panel status light (inside)", "position": [1.15, 0.03, 1.5], "colour": "#FF2A2A", "lumens": 2, "followsDoorLock": "D_front", "basis": "notes" },
-        { "id": "I_panel_out", "room": "corridor","type": "indicator", "fixture": "door panel status light (outside)", "position": [1.15, -0.23, 1.5], "colour": "#FF2A2A", "lumens": 2, "followsDoorLock": "D_front", "basis": "notes" },
-        { "id": "I_tv_standby","room": "main",    "type": "indicator", "fixture": "TV standby dot", "position": [5.2, 4.53, 0.57], "colour": "#FF1A1A", "lumens": 0.5, "whenTvOff": true, "basis": "notes" },
-        { "id": "I_climate",   "room": "bedroom", "type": "indicator", "fixture": "climate panel glow", "position": [4.1, 4.34, 1.4], "colour": "#C8CCD0", "lumens": 1, "basis": "notes" },
-        { "id": "I_monitor",   "room": "main",    "type": "indicator", "fixture": "monitor glow, dimmed as far as it goes", "position": [6.27, 8.98, 0.95], "colour": "#AFC4FF", "lumens": 8, "states": ["D", "E"], "basis": "notes+assumed" },
-        { "id": "I_phone",     "room": "main",    "type": "indicator", "fixture": "phone face up on the desk", "position": [5.89, 8.43, 0.76], "colour": "#DDE6FF", "lumens": 1, "states": ["D", "E"], "basis": "notes" },
-
-        { "id": "L_cor_1", "room": "corridor", "type": "ceiling", "fixture": "recessed downlight", "position": [-2.5, -1.1, 2.45], "colourK": 4000, "colour": "#FFD1A3", "lumens": 800, "alwaysOn": true, "basis": "assumed" },
-        { "id": "L_cor_2", "room": "corridor", "type": "ceiling", "fixture": "recessed downlight", "position": [0.6, -1.1, 2.45],  "colourK": 4000, "colour": "#FFD1A3", "lumens": 800, "alwaysOn": true, "basis": "assumed" },
-        { "id": "L_cor_3", "room": "corridor", "type": "ceiling", "fixture": "recessed downlight", "position": [3.7, -1.1, 2.45],  "colourK": 4000, "colour": "#FFD1A3", "lumens": 800, "alwaysOn": true, "basis": "assumed" },
-        { "id": "L_cor_4", "room": "corridor", "type": "ceiling", "fixture": "recessed downlight", "position": [6.8, -1.1, 2.45],  "colourK": 4000, "colour": "#FFD1A3", "lumens": 800, "alwaysOn": true, "basis": "assumed" },
-        { "id": "L_cor_5", "room": "corridor", "type": "ceiling", "fixture": "recessed downlight", "position": [9.6, -1.1, 2.45],  "colourK": 4000, "colour": "#FFD1A3", "lumens": 800, "alwaysOn": true, "basis": "assumed" }
+        {"id": "L_hall_1", "room": "hall", "type": "ceiling", "fitting": "recessed", "emit": "spot", "fixture": "recessed downlight", "position": [0.6, 1.4, 2.6], "colourK": 2700, "colour": "#FFC38A", "lumens": 650, "beamDeg": 100, "switch": "S_hall", "basis": "notes+assumed"},
+        {"id": "L_hall_2", "room": "hall", "type": "ceiling", "fitting": "recessed", "emit": "spot", "fixture": "recessed downlight", "position": [0.6, 3.2, 2.6], "colourK": 2700, "colour": "#FFC38A", "lumens": 650, "beamDeg": 100, "switch": "S_hall", "basis": "notes+assumed"},
+        {"id": "L_kit_1", "room": "main", "type": "ceiling", "fitting": "recessed", "emit": "spot", "fixture": "recessed downlight", "position": [1.2, 5.8, 2.6], "colourK": 2700, "colour": "#FFC38A", "lumens": 800, "beamDeg": 90, "switch": "S_main.kitchen", "basis": "notes+assumed"},
+        {"id": "L_kit_2", "room": "main", "type": "ceiling", "fitting": "recessed", "emit": "spot", "fixture": "recessed downlight", "position": [1.2, 7.2, 2.6], "colourK": 2700, "colour": "#FFC38A", "lumens": 800, "beamDeg": 90, "switch": "S_main.kitchen", "basis": "notes+assumed"},
+        {"id": "L_kit_3", "room": "main", "type": "ceiling", "fitting": "recessed", "emit": "spot", "fixture": "recessed downlight", "position": [1.2, 8.6, 2.6], "colourK": 2700, "colour": "#FFC38A", "lumens": 800, "beamDeg": 90, "switch": "S_main.kitchen", "basis": "notes+assumed"},
+        {"id": "L_undercab", "room": "main", "type": "under-cabinet", "fitting": "strip", "emit": "spots", "fixture": "LED strip under the upper cupboards", "from": [0.3, 5.3, 1.43], "to": [0.3, 8.25, 1.43], "colourK": 5000, "colour": "#FFE4CE", "lumens": 900, "note": "cold white", "switch": "S_undercab", "basis": "notes+assumed", "emitters": 2},
+        {"id": "L_living", "room": "main", "type": "ceiling", "fitting": "flush", "emit": "point", "fixture": "flush, round, white glass, 0.35 m", "position": [5.2, 7.2, 2.6], "colourK": 2700, "colour": "#FFC38A", "lumens": 1500, "switch": "S_main.living", "basis": "notes+assumed", "castShadow": true},
+        {"id": "L_bed", "room": "bedroom", "type": "ceiling", "fitting": "flush", "emit": "point", "fixture": "flush, round, white glass, 0.35 m", "position": [4.75, 2.2, 2.6], "colourK": 2700, "colour": "#FFC38A", "lumens": 1500, "switch": "S_bed", "basis": "notes+assumed"},
+        {"id": "L_bath_bar", "room": "bathroom", "type": "wall", "fitting": "bar", "emit": "point", "fixture": "light bar above the mirror, 0.6 m", "position": [2.2, 2.33, 1.79], "colourK": 2700, "colour": "#FFC38A", "lumens": 1000, "switch": "S_bath", "linkedSound": "extractor_fan", "basis": "notes+assumed"},
+        {"id": "L_closet", "room": "walkin", "type": "ceiling", "fitting": "flush", "emit": "point", "fixture": "small flush light", "position": [2.5, 3.4, 2.6], "colourK": 2700, "colour": "#FFC38A", "lumens": 400, "switch": "S_closet", "basis": "notes+assumed", "note": "not in the notes' light list; added so the walk-in is not pitch black"},
+        {"id": "L_desk_lamp", "room": "bedroom|main", "type": "lamp", "fitting": "taskLamp", "emit": "spot", "fixture": "black adjustable task lamp (hers, a work item)", "colourK": 2700, "colour": "#FFC38A", "lumens": 450, "beamDeg": 55, "switch": "on the lamp", "byState": {"A": {"room": "bedroom", "position": [4.57, 0.18, 1.2], "aimAt": [4.0, 0.3, 0.75], "note": "Ch1 Sc4: can be turned toward the bed, aimAt [5.4, 2.2, 0.6]"}, "B": {"room": "bedroom", "position": [4.57, 0.18, 1.2], "aimAt": [4.0, 0.3, 0.75]}, "C": {"room": "bedroom", "position": [4.57, 0.18, 1.2], "aimAt": [4.0, 0.3, 0.75]}, "D": {"room": "main", "position": [6.37, 9.52, 1.2], "aimAt": [6.5, 9.4, 1.3], "note": "turned to face the wall (LOCKED)"}, "E": {"room": "main", "position": [6.37, 9.52, 1.2], "aimAt": [6.5, 9.4, 1.3]}, "F": {"room": "main", "position": [6.37, 9.52, 1.2], "aimAt": [6.5, 9.4, 1.3], "startsOn": false}}, "basis": "notes+assumed", "castShadow": true},
+        {"id": "L_fridge", "room": "main", "type": "appliance", "fitting": "appliance", "emit": "point", "fixture": "fridge interior light, on when the fridge door is open", "position": [0.4, 4.88, 1.6], "colourK": 5000, "colour": "#FFE4CE", "lumens": 100, "basis": "notes+assumed", "note": "inside the fridge; comes on with the fridge door (stage 7)"},
+        {"id": "I_panel_in", "room": "hall", "type": "indicator", "fixture": "door panel status light (inside)", "position": [1.15, 0.03, 1.5], "colour": "#FF2A2A", "lumens": 2, "followsDoorLock": "D_front", "basis": "notes"},
+        {"id": "I_panel_out", "room": "corridor", "type": "indicator", "fixture": "door panel status light (outside)", "position": [1.15, -0.23, 1.5], "colour": "#FF2A2A", "lumens": 2, "followsDoorLock": "D_front", "basis": "notes"},
+        {"id": "I_tv_standby", "room": "main", "type": "indicator", "fixture": "TV standby dot", "position": [5.2, 4.53, 0.57], "colour": "#FF1A1A", "lumens": 0.5, "whenTvOff": true, "basis": "notes"},
+        {"id": "I_climate", "room": "bedroom", "type": "indicator", "fixture": "climate panel glow", "position": [4.1, 4.34, 1.4], "colour": "#C8CCD0", "lumens": 1, "basis": "notes"},
+        {"id": "I_monitor", "room": "main", "type": "indicator", "fixture": "monitor glow, dimmed as far as it goes", "position": [6.27, 8.98, 0.95], "colour": "#AFC4FF", "lumens": 8, "states": ["D", "E"], "basis": "notes+assumed", "screenOf": {"item": "monitor_main", "face": "front"}},
+        {"id": "I_phone", "room": "main", "type": "indicator", "fixture": "phone face up on the desk", "position": [5.89, 8.43, 0.76], "colour": "#DDE6FF", "lumens": 1, "states": ["D", "E"], "basis": "notes", "screenOf": {"item": "phone_desk", "face": "top"}},
+        {"id": "L_cor_1", "room": "corridor", "type": "ceiling", "fitting": "recessed", "emit": "spot", "fixture": "recessed downlight", "position": [-2.5, -1.1, 2.45], "colourK": 4000, "colour": "#FFD1A3", "lumens": 800, "basis": "assumed", "schedule": "corridor", "note": "common corridor, building-run, neutral white"},
+        {"id": "L_cor_2", "room": "corridor", "type": "ceiling", "fitting": "recessed", "emit": "spot", "fixture": "recessed downlight", "position": [0.6, -1.1, 2.45], "colourK": 4000, "colour": "#FFD1A3", "lumens": 800, "basis": "assumed", "schedule": "corridor", "note": "common corridor, building-run, neutral white"},
+        {"id": "L_cor_3", "room": "corridor", "type": "ceiling", "fitting": "recessed", "emit": "spot", "fixture": "recessed downlight", "position": [3.7, -1.1, 2.45], "colourK": 4000, "colour": "#FFD1A3", "lumens": 800, "basis": "assumed", "schedule": "corridor", "note": "common corridor, building-run, neutral white"},
+        {"id": "L_cor_4", "room": "corridor", "type": "ceiling", "fitting": "recessed", "emit": "spot", "fixture": "recessed downlight", "position": [6.8, -1.1, 2.45], "colourK": 4000, "colour": "#FFD1A3", "lumens": 800, "basis": "assumed", "schedule": "corridor", "note": "common corridor, building-run, neutral white"},
+        {"id": "L_cor_5", "room": "corridor", "type": "ceiling", "fitting": "recessed", "emit": "spot", "fixture": "recessed downlight", "position": [9.6, -1.1, 2.45], "colourK": 4000, "colour": "#FFD1A3", "lumens": 800, "basis": "assumed", "schedule": "corridor", "note": "common corridor, building-run, neutral white"}
       ],
 
       "switches": [
-        { "id": "S_hall",     "room": "hall", "interact": { "type": "switch", "action": "toggle_power" },     "position": [1.15, 0.25, 1.1], "facing": "-x", "controls": ["L_hall_1", "L_hall_2"], "basis": "assumed" },
-        { "id": "S_main",     "room": "main", "interact": { "type": "switch", "action": "toggle_power" },     "position": [1.35, 4.45, 1.1], "facing": "+y", "gangs": { "kitchen": ["L_kit_1", "L_kit_2", "L_kit_3"], "living": ["L_living"] }, "basis": "assumed" },
-        { "id": "S_undercab", "room": "main", "interact": { "type": "switch", "action": "toggle_power" },     "position": [0.3, 5.35, 1.4],  "facing": "down", "controls": ["L_undercab"], "basis": "assumed" },
-        { "id": "S_bed",      "room": "bedroom", "interact": { "type": "switch", "action": "toggle_power" },  "position": [4.1, 4.35, 1.05], "facing": "-y", "controls": ["L_bed"], "basis": "notes+assumed", "note": "notes: light switch and climate panel on the wall just inside the door" },
-        { "id": "S_bath",     "room": "bathroom", "interact": { "type": "switch", "action": "toggle_power" }, "position": [1.25, 1.85, 1.1], "facing": "+x", "controls": ["L_bath_bar"], "basis": "assumed" },
-        { "id": "S_closet",   "room": "bedroom", "interact": { "type": "switch", "action": "toggle_power" },  "position": [3.05, 3.4, 1.1],  "facing": "+x", "controls": ["L_closet"], "basis": "assumed" }
+        {"id": "S_hall", "room": "hall", "interact": {"type": "switch", "action": "toggle_power"}, "position": [1.15, 0.25, 1.1], "facing": "-x", "controls": ["L_hall_1", "L_hall_2"], "basis": "assumed"},
+        {"id": "S_main", "room": "main", "interact": {"type": "switch", "action": "toggle_power"}, "position": [1.35, 4.45, 1.1], "facing": "+y", "basis": "assumed", "gangs": [{"id": "kitchen", "controls": ["L_kit_1", "L_kit_2", "L_kit_3"], "prompts": {"off": "Turn kitchen lights on", "on": "Turn kitchen lights off"}}, {"id": "living", "controls": ["L_living"], "prompts": {"off": "Turn living-room light on", "on": "Turn living-room light off"}}]},
+        {"id": "S_undercab", "room": "main", "nearDoor": false, "location": "on the underside of the upper cupboards, beside the fridge", "interact": {"type": "switch", "action": "toggle_power"}, "position": [0.3, 5.35, 1.4], "facing": "down", "controls": ["L_undercab"], "basis": "assumed", "prompts": {"off": "Turn under-cupboard lights on", "on": "Turn under-cupboard lights off"}},
+        {"id": "S_bed", "room": "bedroom", "interact": {"type": "switch", "action": "toggle_power"}, "position": [4.1, 4.35, 1.05], "facing": "-y", "controls": ["L_bed"], "basis": "notes+assumed", "note": "notes: light switch and climate panel on the wall just inside the door"},
+        {"id": "S_bath", "room": "bathroom", "interact": {"type": "switch", "action": "toggle_power"}, "position": [1.25, 1.85, 1.1], "facing": "+x", "controls": ["L_bath_bar"], "basis": "assumed"},
+        {"id": "S_closet", "room": "bedroom", "interact": {"type": "switch", "action": "toggle_power"}, "position": [3.05, 3.4, 1.1], "facing": "+x", "controls": ["L_closet"], "basis": "assumed"}
       ],
 
       "furniture": [

@@ -12,6 +12,7 @@ export function buildFurniture(house, state) {
   group.name = `furniture:${state}`;
   const boxes = furnitureBoxes(house.floors[0], state);
   for (const b of boxes) {
+    if (b.drawnAsFitting) continue; // lamps are drawn by lighting/fixtures.js; their box still collides
     const mesh = addOutline(boxMesh(b, b.solid ? SOLID : PROP), EDGE);
     if (b.interactive) mesh.userData.interactId = b.item; // picked up by the interaction system once its type has a handler
     group.add(mesh);
