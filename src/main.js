@@ -91,7 +91,7 @@ const player = createPlayer({ camera, dom: renderer.domElement, settings, getCol
 const hud = createHud(house, state);
 const timebar = createTimebar(house, clock);
 player.onLockChange((locked) => hud.setLocked(locked));
-document.getElementById("overlay").addEventListener("click", () => renderer.domElement.requestPointerLock?.());
+document.getElementById("overlay").addEventListener("click", () => player.capture());
 
 // Handlers by interaction type (types and prompts come from house.json).
 const toggleDoor = (obj) => ({ condition: () => doors.condition(obj.id), run: () => doors.toggle(obj.id) });

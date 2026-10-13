@@ -1,6 +1,8 @@
 // First-person controls: click to capture the mouse, mouse to look, W/A/S/D
 // (or arrow keys) to walk, Shift to walk faster. Position is kept in plan
-// coordinates (x, y) and copied to the camera every frame.
+// coordinates (x, y) and copied to the camera every frame. Where the page may
+// not capture the mouse (some embedded frames), it falls back to drag-to-look,
+// and Esc leaves it.
 import { move, resolve } from "./collision.js";
 import { planToThree } from "../scene/boxes.js";
 
@@ -20,20 +22,44 @@ export function createPlayer({ camera, dom, settings, getColliders }) {
   resolve(state.pos, settings.radius, getColliders());
   camera.rotation.order = "YXZ";
 
-  dom.addEventListener("click", () => {
-    if (!state.locked) dom.requestPointerLock?.();
-  });
+  let dragMode = false, dragging = false;
+  const setLocked = (locked) => {
+    state.locked = locked;
+    if (!locked) state.keys.clear();
+    onLockChange?.(locked, dragMode ? "drag" : "pointer");
+  };
+  const enterDragMode = () => {
+    if (state.locked) return;
+    dragMode = true;
+    setLocked(true);
+  };
+  function capture() {
+    if (state.locked) return;
+    if (!dom.requestPointerLock) return enterDragMode();
+    try {
+      dom.requestPointerLock()?.catch?.(enterDragMode);
+    } catch {
+      enterDragMode();
+    }
+  }
+  dom.addEventListener("click", capture);
+  document.addEventListener("pointerlockerror", enterDragMode);
   document.addEventListener("pointerlockchange", () => {
-    state.locked = document.pointerLockElement === dom;
-    if (!state.locked) state.keys.clear();
-    onLockChange?.(state.locked);
+    if (!dragMode) setLocked(document.pointerLockElement === dom);
   });
+  dom.addEventListener("mousedown", () => (dragging = dragMode));
+  window.addEventListener("mouseup", () => (dragging = false));
   document.addEventListener("mousemove", (e) => {
-    if (!state.locked) return;
+    if (!state.locked || (dragMode && !dragging)) return;
     state.yaw -= e.movementX * LOOK_SENSITIVITY;
     state.pitch = Math.max(-MAX_PITCH, Math.min(MAX_PITCH, state.pitch - e.movementY * LOOK_SENSITIVITY));
   });
   document.addEventListener("keydown", (e) => {
+    if (dragMode && e.code === "Escape") {
+      dragMode = false;
+      setLocked(false);
+      return;
+    }
     if (state.locked) state.keys.add(e.code);
   });
   document.addEventListener("keyup", (e) => state.keys.delete(e.code));
@@ -59,6 +85,7 @@ export function createPlayer({ camera, dom, settings, getColliders }) {
   return {
     state,
     update,
+    capture, // capture the mouse (or drag-to-look where capture isn't allowed)
     onLockChange: (fn) => (onLockChange = fn),
     // Test and debug hooks
     teleport(x, y, facingDeg = null) {

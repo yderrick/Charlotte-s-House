@@ -6,8 +6,8 @@
 //   npm run fetch:textures -- --pick tile_grey=<polyhaven asset id>
 //   npm run fetch:textures -- --res 2k --dry-run
 //
-// Writes public/textures/<files>, public/textures/manifest.json (read by
-// src/art/materials.js at start-up) and the "Downloaded textures" list in
+// Writes public/textures/<files>, textures/manifest.json (bundled by
+// src/art/materials.js) and the "Downloaded textures" list in
 // CREDITS.md. Each material keeps its colour from house.json: the photo is
 // tinted so its average comes out as that colour. Needs network access to
 // api.polyhaven.com and dl.polyhaven.org. No dependencies (Node 18+ fetch).
@@ -54,9 +54,10 @@ try {
   process.exit(1);
 }
 
-const manifestPath = join(outDir, "manifest.json");
+const manifestPath = join(ROOT, "textures", "manifest.json");
 const manifest = existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath, "utf8")) : { source: "Poly Haven (CC0)", materials: {} };
 mkdirSync(outDir, { recursive: true });
+mkdirSync(join(ROOT, "textures"), { recursive: true });
 
 for (const [id, m] of wanted) {
   const words = m.texture.search.map((w) => w.toLowerCase());

@@ -2,7 +2,7 @@
 // Lambert on purpose: the room-aware lighting patch (lighting/roomMask.js) works
 // on Lambert materials. Textures are drawn in code; if tools/fetch-textures.mjs
 // has downloaded a real CC0 texture for a material (listed in
-// /textures/manifest.json) it is swapped in once loaded.
+// textures/manifest.json, files in public/textures/) it is swapped in once loaded.
 import * as THREE from "three";
 import { proceduralTexture } from "./textures.js";
 
@@ -32,37 +32,35 @@ export function createMaterials(house) {
   if (lib._clear) Object.assign(lib._clear, { transparent: true, opacity: 0.18, depthWrite: false });
 
   // Real textures fetched by tools/fetch-textures.mjs, when present.
-  fetch("textures/manifest.json")
-    .then((r) => (r.ok ? r.json() : null))
-    .then((manifest) => {
-      if (!manifest) return;
-      const loader = new THREE.TextureLoader();
-      for (const [id, files] of Object.entries(manifest.materials ?? {})) {
-        const m = lib[id];
-        if (!m || !files.diffuse) continue;
-        loader.load(`textures/${files.diffuse}`, (tex) => {
-          tex.colorSpace = THREE.SRGBColorSpace;
-          tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-          const cover = files.cover ?? [1, 1];
-          tex.repeat.set(1 / cover[0], 1 / cover[1]);
-          m.map = tex;
-          // Tint so the photo's average comes out as the notes' colour.
-          const mean = meanColour(tex.image);
-          const want = new THREE.Color(house.materials[id].colour);
-          m.color.setRGB(...["r", "g", "b"].map((c) => Math.min(4, want[c] / Math.max(0.02, mean[c]))));
-          m.userData.cover = cover;
-          m.needsUpdate = true;
-        });
-        if (files.normal) loader.load(`textures/${files.normal}`, (tex) => {
-          tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-          tex.repeat.set(1 / (files.cover?.[0] ?? 1), 1 / (files.cover?.[1] ?? 1));
-          m.normalMap = tex;
-          m.bumpMap = null;
-          m.needsUpdate = true;
-        });
-      }
-    })
-    .catch(() => {}); // no fetched textures: keep the drawn ones
+  // The manifest is bundled at build time (no request, and no 404, when there is none).
+  const manifest = Object.values(import.meta.glob("/textures/manifest.json", { eager: true, import: "default" }))[0];
+  if (manifest) {
+    const loader = new THREE.TextureLoader();
+    for (const [id, files] of Object.entries(manifest.materials ?? {})) {
+      const m = lib[id];
+      if (!m || !files.diffuse) continue;
+      loader.load(`textures/${files.diffuse}`, (tex) => {
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        const cover = files.cover ?? [1, 1];
+        tex.repeat.set(1 / cover[0], 1 / cover[1]);
+        m.map = tex;
+        // Tint so the photo's average comes out as the notes' colour.
+        const mean = meanColour(tex.image);
+        const want = new THREE.Color(house.materials[id].colour);
+        m.color.setRGB(...["r", "g", "b"].map((c) => Math.min(4, want[c] / Math.max(0.02, mean[c]))));
+        m.userData.cover = cover;
+        m.needsUpdate = true;
+      });
+      if (files.normal) loader.load(`textures/${files.normal}`, (tex) => {
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(1 / (files.cover?.[0] ?? 1), 1 / (files.cover?.[1] ?? 1));
+        m.normalMap = tex;
+        m.bumpMap = null;
+        m.needsUpdate = true;
+      });
+    }
+  }
 
   return lib;
 }

@@ -25,7 +25,7 @@ npm run fetch:textures -- --dry-run    # just show what it would pick
 npm run fetch:textures -- --pick tile_grey=<asset id>   # choose a specific texture
 ```
 
-The script saves the files to `public/textures/`, writes `public/textures/manifest.json` (loaded at start-up), and lists every downloaded file in the table below. Poly Haven textures are CC0, so no attribution is required, but they are listed anyway.
+The script saves the files to `public/textures/`, writes `textures/manifest.json` (loaded at start-up), and lists every downloaded file in the table below. Poly Haven textures are CC0, so no attribution is required, but they are listed anyway.
 
 ### Downloaded textures
 

@@ -55,7 +55,7 @@ A walkable, first-person 3D version of Charlotte's apartment (floor 21, Thunder 
   - Every surface uses a `MeshLambertMaterial` from `src/art/materials.js`, one per `house.materials` entry. Keep them Lambert: the room mask only patches Lambert.
   - A material's `texture` recipe gives the pattern and its real size in metres. UVs are in metres, and the material's colour from the notes stays the average colour.
   - Colours for small unnamed parts, garments and the town live in `house.art` and `outdoors.look`, not in code.
-  - Real CC0 textures, once fetched, are listed in `public/textures/manifest.json` and swapped in at start-up.
+  - Real CC0 textures, once fetched, are listed in `textures/manifest.json` and swapped in at start-up.
 
 ## Module layout
 
@@ -311,7 +311,7 @@ Stage numbering follows your request: this is stage 7. Sound is on hold, and sto
   - Every material in `house.json` now has a texture recipe (`materials.*.texture`), and `src/art/textures.js` draws it at its real size, with a bump map.
   - Recipes: faint plaster on the white walls and ceilings; 1.22 m grey wood-look vinyl planks; 60 × 30 cm grey bathroom tiles with grout; quarter-turned charcoal carpet tiles in the corridor; speckled grey counter; brushed stainless; fine fabric weaves on the couch, curtains, bedding, towels and stools; cardboard on the boxes; slotted grilles; handwriting on her pages.
   - Each material keeps its colour from the notes as its average colour.
-  - `npm run fetch:textures` will download Poly Haven CC0 textures (picked from each recipe's `search` words) on a machine with access. It writes `public/textures/manifest.json` and lists the files in `CREDITS.md`. The game swaps them in at start-up and tints each one to the notes' colour.
+  - `npm run fetch:textures` will download Poly Haven CC0 textures (picked from each recipe's `search` words) on a machine with access. It writes `textures/manifest.json` and lists the files in `CREDITS.md`. The game swaps them in at start-up and tints each one to the notes' colour.
 - **Shell:** each wall face takes the finish of the room it faces: white paint in the flat, the corridor's wall finish in the corridor, the facade outside. Floors take each room's floor material, ceilings their ceiling, and slab edges are concrete. Door leaves are white inside; the front door is charcoal on the corridor side. Handles are stainless. The grey outlines are gone.
 - **Furniture:** every item is a low-poly model built in code (`src/furniture/models.js`), filling its footprint from `house.json`. Some examples:
   - Kitchen: cabinet doors and drawers with handles, the worktop cut around the sink, the range with a black glass top and knobs, the microwave with its window, a kettle and a drying rack.
@@ -332,6 +332,8 @@ Stage numbering follows your request: this is stage 7. Sound is on hold, and sto
   - Distance fog takes its colour from the sky's horizon.
 - **Seasons:** snow on the ground and roofs, and a frozen harbour, on the dates in `timeOfDay.season`. Tree leaves are on from mid-May to late October.
 - **Frost:** on December–February nights, feathery frost grows from the bottom corners of each pane (`timeOfDay.frost`).
+- **Mouse look fallback:** where the page isn't allowed to capture the mouse (for example inside an embedded frame), clicking switches to drag-to-look instead; Esc leaves it. The texture manifest is bundled at build time, so a build with no fetched textures makes no request for it.
+- **Web version:** published as an artifact at https://claude.ai/artifact/KuC6nDpjto6oqiKnupS5Sq (built with `npx vite build --base=./`). URL options like `?time=` don't reach it; use the time slider instead.
 - **Smoothness:** all shaders are compiled at start-up, behind the "click to walk" overlay, so turning to look at something new doesn't stutter.
 - **How to run:** `npm install`, then `npm run dev`, and open http://localhost:5173/. Try:
   - `?time=23:30` for night;
