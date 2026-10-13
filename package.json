@@ -1,0 +1,11 @@
+{
+  "name": "charlottes-house",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "First-person walk-through of Charlotte's apartment, built from house.json",
+  "scripts": {
+    "check": "node tools/check-house.mjs",
+    "floorplan": "node tools/floorplan.mjs"
+  }
+}

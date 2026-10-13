@@ -1,0 +1,593 @@
+{
+  "meta": {
+    "name": "Charlotte's Apartment, floor 21, Thunder Bay",
+    "version": 1,
+    "units": "metres; angles in degrees; times are local clock time (America/Toronto, which Thunder Bay uses)",
+    "sourceDoc": "1a. Charlotte's Apartment — Full Build (floor 21, Thunder Bay), locked 13 Oct 2026",
+    "basisKey": {
+      "notes": "taken from the design notes as written; do not change without changing the notes",
+      "assumed": "invented to fill a gap; listed in ASSUMPTIONS.md",
+      "notes+assumed": "position or size from the notes, other details (height, colour, depth) invented"
+    }
+  },
+
+  "coordinateSystem": {
+    "origin": "inside corner where the corridor wall meets the left-hand wall as you walk in",
+    "x": "to the right as you walk in, 0 to 6.5",
+    "y": "toward the windows, 0 to 10.0",
+    "z": "up from the finished floor of the unit",
+    "roomBounds": "room rectangles use the notes' lines. Interior partitions are centred on those lines; exterior walls sit outside the 6.5 x 10.0 box, so the box is the inside dimension",
+    "rotation": "rotationDeg is counter-clockwise seen from above. 0 = the object's front faces +y (the windows), 90 = faces -x, 180 = faces -y (the corridor), 270 = faces +x",
+    "toThreeJs": "three.x = x, three.y = z, three.z = -y. A plan rotation of r degrees becomes object.rotation.y = r * PI / 180",
+    "compassFromPlan": "bearing (degrees clockwise from true north) of a plan direction (dx, dy) = 135 + atan2(dx, dy) in degrees. So +y = 135 (SE), +x = 225 (SW), -x = 45 (NE), -y = 315 (NW)",
+    "planFromCompass": "for bearing B and distance d measured from the centre of the window wall (3.25, 10.0): t = B - 135; x = 3.25 + d*sin(t); y = 10.0 + d*cos(t)"
+  },
+
+  "site": {
+    "city": "Thunder Bay, Ontario, Canada",
+    "latitude": 48.38,
+    "longitude": -89.25,
+    "timeZone": "America/Toronto",
+    "facing": {
+      "direction": "SE",
+      "bearingDeg": 135,
+      "which": "the window wall (y = 10.0) faces south-east; the corridor wall faces north-west",
+      "basis": "notes"
+    },
+    "sunNotes": "computed from the latitude: on 18 Jun 2026 sunrise 05:56, solar noon 13:58, sunset 22:01 (clock time). Direct sun enters the glass from about 06:00 (low, from the left) until about 15:45. On 7 Nov 2026 the sun is low (max 25 deg) and in the glass from sunrise 07:53 until about 15:00."
+  },
+
+  "building": {
+    "type": "purpose-built rental high-rise",
+    "storeys": 25,
+    "unitFloor": 21,
+    "groundFloorHeight": 4.5,
+    "floorToFloor": 3.0,
+    "unitFloorElevation": 61.5,
+    "roofElevation": 76.5,
+    "groundFloor": "glass entrance with wind lobby, front desk facing the doors staffed day and night, steel mailboxes behind it, two lifts",
+    "notModelled": ["ground floor", "gym floor", "roof deck"],
+    "basis": "notes+assumed"
+  },
+
+  "player": {
+    "character": "charlotte",
+    "eyeHeight": 1.6,
+    "radius": 0.25,
+    "walkSpeed": 1.4,
+    "spawn": { "x": 0.6, "y": 0.8, "facingDeg": 0, "room": "hall" },
+    "observerMode": "if player.character is set to 'observer', Charlotte appears as an NPC and follows her routine",
+    "basis": "notes+assumed"
+  },
+
+  "states": {
+    "default": "A",
+    "list": [
+      { "id": "A", "name": "Two people live here, secretly", "phase": 1, "dates": ["2026-06-17", "2026-06-18"], "defaultDateTime": "2026-06-18T07:30", "scenes": ["Ch1 Sc3", "Ch1 Sc4", "Ch1 Sc5"] },
+      { "id": "B", "name": "The morning after Day 0", "phase": 2, "dates": ["2026-06-29"], "defaultDateTime": "2026-06-29T10:30", "scenes": ["Ch6 Sc4"] },
+      { "id": "C", "name": "His things put away", "phase": 3, "dates": ["2026-08-18"], "defaultDateTime": "2026-08-18T18:00", "scenes": ["Ch9 Sc4"] },
+      { "id": "D", "name": "Outside the wall", "phase": 6, "dates": ["2026-10-20", "2026-10-27"], "defaultDateTime": "2026-10-20T23:00", "scenes": ["Ch15 Sc3", "Ch16 Sc3"] },
+      { "id": "E", "name": "The birthday", "phase": 7, "dates": ["2026-11-07"], "defaultDateTime": "2026-11-07T14:30", "scenes": ["Ch17 Sc3"] },
+      { "id": "F", "name": "Back inside VORD", "phase": 7, "dates": ["2026-11-30"], "defaultDateTime": "2026-11-30T15:00", "scenes": [], "note": "Not decided in the notes. Built as the 'Proposed reading': flat mostly empty, boxes half packed, fridge off." }
+    ],
+    "curtainsByState": {
+      "A": "open 07:00 to 23:00 (Venus opens them in the morning), closed at night",
+      "B": "closed from 10:00 onward, all day",
+      "C": "closed",
+      "D": "closed day and night",
+      "E": "closed",
+      "F": "closed"
+    }
+  },
+
+  "materials": {
+    "paint_white":      { "colour": "#F2F2EF", "roughness": 0.9, "metalness": 0.0 },
+    "vinyl_grey_wood":  { "colour": "#8E8C88", "roughness": 0.7, "metalness": 0.0 },
+    "tile_grey":        { "colour": "#B9BBBC", "roughness": 0.4, "metalness": 0.0 },
+    "carpet_charcoal":  { "colour": "#2F3135", "roughness": 1.0, "metalness": 0.0 },
+    "corridor_wall":    { "colour": "#C9C7C2", "roughness": 0.9, "metalness": 0.0 },
+    "door_white":       { "colour": "#F4F4F2", "roughness": 0.6, "metalness": 0.0 },
+    "door_charcoal":    { "colour": "#3A3D41", "roughness": 0.6, "metalness": 0.0 },
+    "cabinet_white":    { "colour": "#F5F5F3", "roughness": 0.5, "metalness": 0.0 },
+    "counter_grey":     { "colour": "#8A8A87", "roughness": 0.5, "metalness": 0.0 },
+    "stainless":        { "colour": "#C0C3C6", "roughness": 0.3, "metalness": 0.9 },
+    "black_glass":      { "colour": "#0E0F10", "roughness": 0.1, "metalness": 0.2 },
+    "aluminium_black":  { "colour": "#1C1D1F", "roughness": 0.4, "metalness": 0.6 },
+    "glass":            { "colour": "#DDE6EA", "roughness": 0.0, "metalness": 0.0, "opacity": 0.12 },
+    "curtain_grey":     { "colour": "#6E7073", "roughness": 1.0, "metalness": 0.0, "blackout": true },
+    "couch_bluegreen":  { "colour": "#1F4E52", "roughness": 1.0, "metalness": 0.0 },
+    "furniture_white":  { "colour": "#F1F1EE", "roughness": 0.5, "metalness": 0.0 },
+    "black_matte":      { "colour": "#151515", "roughness": 0.6, "metalness": 0.1 },
+    "black_metal":      { "colour": "#1A1A1A", "roughness": 0.4, "metalness": 0.7 },
+    "seat_grey":        { "colour": "#7B7D80", "roughness": 0.9, "metalness": 0.0 },
+    "headboard_grey":   { "colour": "#7F8287", "roughness": 1.0, "metalness": 0.0 },
+    "sheet_white":      { "colour": "#F7F7F5", "roughness": 1.0, "metalness": 0.0 },
+    "duvet_grey":       { "colour": "#8B8E92", "roughness": 1.0, "metalness": 0.0 },
+    "porcelain_white":  { "colour": "#FAFAFA", "roughness": 0.15, "metalness": 0.0 },
+    "mirror":           { "colour": "#E8EEF0", "roughness": 0.0, "metalness": 1.0 },
+    "grille_grey":      { "colour": "#9A9C9E", "roughness": 0.6, "metalness": 0.3 },
+    "cardboard":        { "colour": "#B08D62", "roughness": 1.0, "metalness": 0.0 },
+    "paper":            { "colour": "#F4F1E8", "roughness": 1.0, "metalness": 0.0 },
+    "plastic_white":    { "colour": "#F3F3F3", "roughness": 0.4, "metalness": 0.0 },
+    "fabric_dark":      { "colour": "#23252A", "roughness": 1.0, "metalness": 0.0 },
+    "towel_grey":       { "colour": "#8C8F93", "roughness": 1.0, "metalness": 0.0 },
+    "record_sleeves":   { "colour": "#C2462E", "roughness": 0.6, "metalness": 0.0, "note": "the only printed colour in the flat; builder may vary each sleeve" }
+  },
+
+  "floors": [
+    {
+      "id": "floor21",
+      "name": "Floor 21 (the unit and a stub of the corridor)",
+      "level": 21,
+      "elevation": 61.5,
+      "slabThickness": 0.4,
+      "defaultCeilingHeight": 2.6,
+
+      "rooms": [
+        { "id": "hall",     "name": "Hall",                         "inUnit": true,  "x": [0.0, 1.2], "y": [0.0, 4.4],  "ceilingHeight": 2.6, "floor": "vinyl_grey_wood", "walls": "paint_white", "ceiling": "paint_white", "nominalArea": 5.28, "basis": "notes" },
+        { "id": "bathroom", "name": "Bathroom",                     "inUnit": true,  "x": [1.2, 3.0], "y": [0.0, 2.4],  "ceilingHeight": 2.6, "floor": "tile_grey",       "walls": "paint_white", "ceiling": "paint_white", "nominalArea": 4.32, "basis": "notes" },
+        { "id": "laundry",  "name": "Laundry cupboard",             "inUnit": true,  "x": [1.2, 2.0], "y": [2.4, 3.4],  "ceilingHeight": 2.6, "floor": "vinyl_grey_wood", "walls": "paint_white", "ceiling": "paint_white", "nominalArea": 0.8,  "basis": "notes" },
+        { "id": "coat",     "name": "Coat cupboard",                "inUnit": true,  "x": [1.2, 2.0], "y": [3.4, 4.4],  "ceilingHeight": 2.6, "floor": "vinyl_grey_wood", "walls": "paint_white", "ceiling": "paint_white", "nominalArea": 0.8,  "basis": "notes" },
+        { "id": "walkin",   "name": "Walk-in closet",               "inUnit": true,  "x": [2.0, 3.0], "y": [2.4, 4.4],  "ceilingHeight": 2.6, "floor": "vinyl_grey_wood", "walls": "paint_white", "ceiling": "paint_white", "nominalArea": 2.0,  "basis": "notes" },
+        { "id": "bedroom",  "name": "Bedroom",                      "inUnit": true,  "x": [3.0, 6.5], "y": [0.0, 4.4],  "ceilingHeight": 2.6, "floor": "vinyl_grey_wood", "walls": "paint_white", "ceiling": "paint_white", "nominalArea": 15.4, "basis": "notes" },
+        { "id": "main",     "name": "Main room (kitchen and living)", "inUnit": true, "x": [0.0, 6.5], "y": [4.4, 10.0], "ceilingHeight": 2.6, "floor": "vinyl_grey_wood", "walls": "paint_white", "ceiling": "paint_white", "nominalArea": 36.4, "basis": "notes",
+          "zones": [
+            { "id": "kitchen", "x": [0.0, 3.1], "y": [4.4, 10.0], "basis": "assumed" },
+            { "id": "living",  "x": [3.1, 6.5], "y": [4.4, 10.0], "basis": "assumed" },
+            { "id": "window_corner", "x": [3.1, 6.5], "y": [7.95, 10.0], "basis": "notes", "note": "empty floor between the couch back and the glass where the morning sun falls" }
+          ]
+        },
+        { "id": "corridor", "name": "Floor 21 corridor (common, stub only)", "inUnit": false, "x": [-4.0, 10.5], "y": [-2.0, -0.2], "ceilingHeight": 2.45, "floor": "carpet_charcoal", "walls": "corridor_wall", "ceiling": "paint_white", "basis": "assumed",
+          "note": "air-conditioned interior corridor, charcoal carpet tiles, numbered doors that all look like hers, lift chime at the west (x = -4) end" }
+      ],
+
+      "walls": [
+        { "id": "EXT_corridor", "kind": "exterior", "a": [0.0, -0.1], "b": [6.5, -0.1], "thickness": 0.2, "height": 2.6, "extendStart": 0.2, "extendEnd": 0.2, "between": ["hall|bathroom|bedroom", "corridor"], "faceInside": "paint_white", "faceOutside": "corridor_wall", "basis": "notes+assumed" },
+        { "id": "EXT_left",     "kind": "exterior", "a": [-0.1, 0.0], "b": [-0.1, 10.0], "thickness": 0.2, "height": 2.6, "extendStart": 0.2, "extendEnd": 0.15, "between": ["hall|main", "neighbour unit (NE)"], "faceInside": "paint_white", "basis": "assumed" },
+        { "id": "EXT_right",    "kind": "exterior", "a": [6.6, 0.0], "b": [6.6, 10.0], "thickness": 0.2, "height": 2.6, "extendStart": 0.2, "extendEnd": 0.15, "between": ["bedroom|main", "neighbour unit (SW)"], "faceInside": "paint_white", "basis": "assumed" },
+        { "id": "GLZ_window",   "kind": "glazing",  "a": [0.0, 10.075], "b": [6.5, 10.075], "thickness": 0.15, "height": 2.6, "extendStart": 0.0, "extendEnd": 0.0, "between": ["main", "outside"], "frame": "aluminium_black", "basis": "notes+assumed" },
+
+        { "id": "P_hall",       "kind": "partition", "a": [1.2, 0.0], "b": [1.2, 4.4], "thickness": 0.1, "height": 2.6, "extendStart": 0.0, "extendEnd": 0.05, "between": ["hall", "bathroom|laundry|coat"], "basis": "notes" },
+        { "id": "P_bath_n",     "kind": "partition", "a": [1.2, 2.4], "b": [3.0, 2.4], "thickness": 0.1, "height": 2.6, "extendStart": 0.0, "extendEnd": 0.0, "between": ["bathroom", "laundry|walkin"], "basis": "notes" },
+        { "id": "P_laundry_coat", "kind": "partition", "a": [1.2, 3.4], "b": [2.0, 3.4], "thickness": 0.1, "height": 2.6, "extendStart": 0.0, "extendEnd": 0.0, "between": ["laundry", "coat"], "basis": "notes" },
+        { "id": "P_cupboards",  "kind": "partition", "a": [2.0, 2.4], "b": [2.0, 4.4], "thickness": 0.1, "height": 2.6, "extendStart": 0.0, "extendEnd": 0.0, "between": ["laundry|coat", "walkin"], "basis": "notes" },
+        { "id": "P_bed_w",      "kind": "partition", "a": [3.0, 0.0], "b": [3.0, 4.4], "thickness": 0.1, "height": 2.6, "extendStart": 0.0, "extendEnd": 0.05, "between": ["bathroom|walkin", "bedroom"], "basis": "notes" },
+        { "id": "P_back",       "kind": "partition", "a": [0.0, 4.4], "b": [6.5, 4.4], "thickness": 0.1, "height": 2.6, "extendStart": 0.0, "extendEnd": 0.0, "between": ["hall|coat|walkin|bedroom", "main"], "basis": "notes" },
+
+        { "id": "COR_s_left",   "kind": "corridor", "a": [-4.0, -0.1], "b": [0.0, -0.1], "thickness": 0.2, "height": 2.45, "extendStart": 0.1, "extendEnd": 0.0, "between": ["neighbour unit", "corridor"], "basis": "assumed" },
+        { "id": "COR_s_right",  "kind": "corridor", "a": [6.5, -0.1], "b": [10.5, -0.1], "thickness": 0.2, "height": 2.45, "extendStart": 0.0, "extendEnd": 0.1, "between": ["neighbour unit", "corridor"], "basis": "assumed" },
+        { "id": "COR_n",        "kind": "corridor", "a": [-4.0, -2.1], "b": [10.5, -2.1], "thickness": 0.2, "height": 2.45, "extendStart": 0.2, "extendEnd": 0.2, "between": ["units across the corridor", "corridor"], "basis": "assumed" },
+        { "id": "COR_w",        "kind": "corridor", "a": [-4.1, -2.0], "b": [-4.1, -0.2], "thickness": 0.2, "height": 2.45, "extendStart": 0.0, "extendEnd": 0.0, "between": ["lift lobby", "corridor"], "basis": "assumed" },
+        { "id": "COR_e",        "kind": "corridor", "a": [10.6, -2.0], "b": [10.6, -0.2], "thickness": 0.2, "height": 2.45, "extendStart": 0.0, "extendEnd": 0.0, "between": ["rest of corridor", "corridor"], "basis": "assumed" }
+      ],
+
+      "doors": [
+        { "id": "D_front", "name": "Front door", "type": "hinged", "connects": ["corridor", "hall"], "wall": "EXT_corridor",
+          "offsetAlongWall": 0.15, "width": 0.9, "height": 2.1, "leafThickness": 0.045,
+          "hinge": "start", "hingePoint": [0.15, -0.1], "swingsInto": "hall", "maxOpenDeg": 95,
+          "startsOpen": false, "locked": true, "selfClosing": true, "closeSeconds": 5,
+          "faceInside": "door_white", "faceOutside": "door_charcoal", "hardware": "lever handle, spy-hole at 1.55 m, closer arm at the top, no keyhole",
+          "lock": { "methods": ["biometric (Charlotte)", "passcode for Venus, resets every 36 h"], "override": "flush plate under the keypad hiding one mechanical key slot; key gone from 27 Jun 2026", "statusLight": { "locked": "#FF2A2A", "open": "#2AFF5A", "keypadTouch": "#3A78FF" } },
+          "basis": "notes+assumed" },
+        { "id": "D_bath", "name": "Bathroom door", "type": "hinged", "connects": ["hall", "bathroom"], "wall": "P_hall",
+          "offsetAlongWall": 1.0, "width": 0.75, "height": 2.1, "leafThickness": 0.04,
+          "hinge": "start", "hingePoint": [1.2, 1.0], "swingsInto": "bathroom", "maxOpenDeg": 90,
+          "startsOpen": true, "startAngleDeg": 90, "face": "door_white", "basis": "notes+assumed" },
+        { "id": "D_laundry", "name": "Laundry bifold", "type": "bifold", "leaves": 2, "connects": ["hall", "laundry"], "wall": "P_hall",
+          "offsetAlongWall": 2.5, "width": 0.8, "height": 2.1, "leafThickness": 0.03,
+          "hinge": "start", "hingePoint": [1.2, 2.5], "foldsInto": "hall", "startsOpen": false, "face": "door_white", "basis": "notes+assumed" },
+        { "id": "D_coat", "name": "Coat cupboard bifold", "type": "bifold", "leaves": 2, "connects": ["hall", "coat"], "wall": "P_hall",
+          "offsetAlongWall": 3.5, "width": 0.8, "height": 2.1, "leafThickness": 0.03,
+          "hinge": "start", "hingePoint": [1.2, 3.5], "foldsInto": "hall", "startsOpen": false, "face": "door_white", "basis": "notes+assumed" },
+        { "id": "O_hall_mouth", "name": "Hall mouth (no door)", "type": "opening", "connects": ["hall", "main"], "wall": "P_back",
+          "offsetAlongWall": 0.0, "width": 1.15, "height": 2.6, "startsOpen": true, "basis": "notes" },
+        { "id": "D_bedroom", "name": "Bedroom door", "type": "hinged", "connects": ["main", "bedroom"], "wall": "P_back",
+          "offsetAlongWall": 3.2, "width": 0.8, "height": 2.1, "leafThickness": 0.04, "undercut": 0.02,
+          "hinge": "start", "hingePoint": [3.2, 4.4], "swingsInto": "bedroom", "maxOpenDeg": 90,
+          "startsOpen": false, "face": "door_white", "basis": "notes+assumed",
+          "note": "gap under it lets a line of light through; air grille above it" },
+        { "id": "D_closet", "name": "Walk-in closet door", "type": "hinged", "connects": ["bedroom", "walkin"], "wall": "P_bed_w",
+          "offsetAlongWall": 2.6, "width": 0.7, "height": 2.1, "leafThickness": 0.04,
+          "hinge": "start", "hingePoint": [3.0, 2.6], "swingsInto": "bedroom", "maxOpenDeg": 90,
+          "startsOpen": false, "face": "door_white", "basis": "notes+assumed" },
+
+        { "id": "X_neighbour_w", "name": "Neighbour's door (decor)", "type": "dummy", "connects": ["corridor", "neighbour unit"], "wall": "COR_s_left", "offsetAlongWall": 2.0, "width": 0.9, "height": 2.1, "face": "door_charcoal", "basis": "assumed" },
+        { "id": "X_neighbour_e", "name": "Neighbour's door (decor)", "type": "dummy", "connects": ["corridor", "neighbour unit"], "wall": "COR_s_right", "offsetAlongWall": 1.5, "width": 0.9, "height": 2.1, "face": "door_charcoal", "basis": "assumed" },
+        { "id": "X_across_1", "name": "Door across the corridor (decor)", "type": "dummy", "connects": ["corridor", "unit across"], "wall": "COR_n", "offsetAlongWall": 4.3, "width": 0.9, "height": 2.1, "face": "door_charcoal", "basis": "assumed" },
+        { "id": "X_across_2", "name": "Door across the corridor (decor)", "type": "dummy", "connects": ["corridor", "unit across"], "wall": "COR_n", "offsetAlongWall": 9.0, "width": 0.9, "height": 2.1, "face": "door_charcoal", "basis": "assumed" },
+        { "id": "X_lift", "name": "Lift doors (decor)", "type": "dummy", "connects": ["corridor", "lift"], "wall": "COR_w", "offsetAlongWall": 0.4, "width": 1.0, "height": 2.1, "face": "stainless", "basis": "assumed" }
+      ],
+
+      "windows": [
+        { "id": "W1", "wall": "GLZ_window", "facing": "SE", "bearingDeg": 135, "offsetAlongWall": 0.0,    "width": 1.0833, "sillHeight": 0.0, "height": 2.6, "frameWidth": 0.05, "opens": "vent", "vent": { "x": [0.05, 0.40], "z": [0.9, 2.1], "type": "bottom-hinged hopper, tilts in at the top", "maxTiltM": 0.05 }, "basis": "notes+assumed" },
+        { "id": "W2", "wall": "GLZ_window", "facing": "SE", "bearingDeg": 135, "offsetAlongWall": 1.0833, "width": 1.0833, "sillHeight": 0.0, "height": 2.6, "frameWidth": 0.05, "opens": false, "basis": "notes" },
+        { "id": "W3", "wall": "GLZ_window", "facing": "SE", "bearingDeg": 135, "offsetAlongWall": 2.1667, "width": 1.0833, "sillHeight": 0.0, "height": 2.6, "frameWidth": 0.05, "opens": false, "basis": "notes" },
+        { "id": "W4", "wall": "GLZ_window", "facing": "SE", "bearingDeg": 135, "offsetAlongWall": 3.25,   "width": 1.0833, "sillHeight": 0.0, "height": 2.6, "frameWidth": 0.05, "opens": false, "basis": "notes" },
+        { "id": "W5", "wall": "GLZ_window", "facing": "SE", "bearingDeg": 135, "offsetAlongWall": 4.3333, "width": 1.0833, "sillHeight": 0.0, "height": 2.6, "frameWidth": 0.05, "opens": false, "basis": "notes" },
+        { "id": "W6", "wall": "GLZ_window", "facing": "SE", "bearingDeg": 135, "offsetAlongWall": 5.4167, "width": 1.0833, "sillHeight": 0.0, "height": 2.6, "frameWidth": 0.05, "opens": false, "basis": "notes" }
+      ],
+
+      "curtains": {
+        "id": "curtains",
+        "track": { "y": 9.75, "x": [0.0, 6.5], "z": 2.6 },
+        "bottom": 0.3,
+        "material": "curtain_grey",
+        "halves": [
+          { "id": "curtain_left",  "anchoredAt": 0.0, "closedTo": 3.3,  "stackWidthOpen": 0.45 },
+          { "id": "curtain_right", "anchoredAt": 6.5, "closedTo": 3.2,  "stackWidthOpen": 0.45 }
+        ],
+        "drawSeconds": 3,
+        "edgeLeakWhenClosed": "thin bright line of daylight at each outer edge and at the centre overlap",
+        "basis": "notes+assumed"
+      },
+
+      "stairs": [],
+
+      "lights": [
+        { "id": "L_hall_1",  "room": "hall",     "type": "ceiling", "fixture": "recessed downlight", "position": [0.6, 1.4, 2.6], "colourK": 4000, "colour": "#FFD1A3", "lumens": 650,  "beamDeg": 100, "switch": "S_hall", "basis": "notes+assumed" },
+        { "id": "L_hall_2",  "room": "hall",     "type": "ceiling", "fixture": "recessed downlight", "position": [0.6, 3.2, 2.6], "colourK": 4000, "colour": "#FFD1A3", "lumens": 650,  "beamDeg": 100, "switch": "S_hall", "basis": "notes+assumed" },
+        { "id": "L_kit_1",   "room": "main",     "type": "ceiling", "fixture": "recessed downlight", "position": [1.2, 5.8, 2.6], "colourK": 4000, "colour": "#FFD1A3", "lumens": 800,  "beamDeg": 90,  "switch": "S_main.kitchen", "basis": "notes+assumed" },
+        { "id": "L_kit_2",   "room": "main",     "type": "ceiling", "fixture": "recessed downlight", "position": [1.2, 7.2, 2.6], "colourK": 4000, "colour": "#FFD1A3", "lumens": 800,  "beamDeg": 90,  "switch": "S_main.kitchen", "basis": "notes+assumed" },
+        { "id": "L_kit_3",   "room": "main",     "type": "ceiling", "fixture": "recessed downlight", "position": [1.2, 8.6, 2.6], "colourK": 4000, "colour": "#FFD1A3", "lumens": 800,  "beamDeg": 90,  "switch": "S_main.kitchen", "basis": "notes+assumed" },
+        { "id": "L_undercab","room": "main",     "type": "under-cabinet", "fixture": "LED strip under the upper cupboards", "from": [0.3, 5.3, 1.43], "to": [0.3, 8.25, 1.43], "colourK": 5000, "colour": "#FFE4CE", "lumens": 900, "note": "cold white", "switch": "S_undercab", "basis": "notes+assumed" },
+        { "id": "L_living",  "room": "main",     "type": "ceiling", "fixture": "flush, round, white glass, 0.35 m", "position": [5.2, 7.2, 2.6], "colourK": 4000, "colour": "#FFD1A3", "lumens": 1500, "switch": "S_main.living", "basis": "notes+assumed" },
+        { "id": "L_bed",     "room": "bedroom",  "type": "ceiling", "fixture": "flush, round, white glass, 0.35 m", "position": [4.75, 2.2, 2.6], "colourK": 4000, "colour": "#FFD1A3", "lumens": 1500, "switch": "S_bed", "basis": "notes+assumed" },
+        { "id": "L_bath_bar","room": "bathroom", "type": "wall", "fixture": "light bar above the mirror, 0.6 m", "position": [2.2, 2.33, 1.79], "colourK": 4000, "colour": "#FFD1A3", "lumens": 1000, "switch": "S_bath", "linkedSound": "extractor_fan", "basis": "notes+assumed" },
+        { "id": "L_closet",  "room": "walkin",   "type": "ceiling", "fixture": "small flush light", "position": [2.5, 3.4, 2.6], "colourK": 4000, "colour": "#FFD1A3", "lumens": 400, "switch": "S_closet", "basis": "assumed", "note": "NOT in the notes' light list; added so the closet is not pitch black. Delete if the list is meant to be complete." },
+        { "id": "L_desk_lamp", "room": "bedroom|main", "type": "lamp", "fixture": "black adjustable task lamp (hers, a work item)", "colourK": 3000, "colour": "#FFB46B", "lumens": 450, "beamDeg": 55, "switch": "on the lamp",
+          "byState": {
+            "A": { "room": "bedroom", "position": [4.57, 0.18, 1.2], "aimAt": [4.0, 0.3, 0.75], "note": "Ch1 Sc4: can be turned toward the bed, aimAt [5.4, 2.2, 0.6]" },
+            "B": { "room": "bedroom", "position": [4.57, 0.18, 1.2], "aimAt": [4.0, 0.3, 0.75] },
+            "C": { "room": "bedroom", "position": [4.57, 0.18, 1.2], "aimAt": [4.0, 0.3, 0.75] },
+            "D": { "room": "main", "position": [6.37, 9.52, 1.2], "aimAt": [6.5, 9.4, 1.3], "note": "turned to face the wall (LOCKED)" },
+            "E": { "room": "main", "position": [6.37, 9.52, 1.2], "aimAt": [6.5, 9.4, 1.3] },
+            "F": { "room": "main", "position": [6.37, 9.52, 1.2], "aimAt": [6.5, 9.4, 1.3], "startsOn": false }
+          },
+          "basis": "notes+assumed" },
+        { "id": "L_fridge",  "room": "main", "type": "appliance", "fixture": "fridge interior light, on when the fridge door is open", "position": [0.4, 4.88, 1.6], "colourK": 5000, "colour": "#FFE4CE", "lumens": 100, "basis": "notes+assumed" },
+
+        { "id": "I_panel_in",  "room": "hall",    "type": "indicator", "fixture": "door panel status light (inside)", "position": [1.15, 0.03, 1.5], "colour": "#FF2A2A", "lumens": 2, "followsDoorLock": "D_front", "basis": "notes" },
+        { "id": "I_panel_out", "room": "corridor","type": "indicator", "fixture": "door panel status light (outside)", "position": [1.15, -0.23, 1.5], "colour": "#FF2A2A", "lumens": 2, "followsDoorLock": "D_front", "basis": "notes" },
+        { "id": "I_tv_standby","room": "main",    "type": "indicator", "fixture": "TV standby dot", "position": [5.2, 4.53, 0.57], "colour": "#FF1A1A", "lumens": 0.5, "whenTvOff": true, "basis": "notes" },
+        { "id": "I_climate",   "room": "bedroom", "type": "indicator", "fixture": "climate panel glow", "position": [4.1, 4.34, 1.4], "colour": "#C8CCD0", "lumens": 1, "basis": "notes" },
+        { "id": "I_monitor",   "room": "main",    "type": "indicator", "fixture": "monitor glow, dimmed as far as it goes", "position": [6.27, 9.08, 0.95], "colour": "#AFC4FF", "lumens": 8, "states": ["D", "E"], "basis": "notes+assumed" },
+        { "id": "I_phone",     "room": "main",    "type": "indicator", "fixture": "phone face up on the desk", "position": [5.89, 8.55, 0.76], "colour": "#DDE6FF", "lumens": 1, "states": ["D", "E"], "basis": "notes" },
+
+        { "id": "L_cor_1", "room": "corridor", "type": "ceiling", "fixture": "recessed downlight", "position": [-2.5, -1.1, 2.45], "colourK": 4000, "colour": "#FFD1A3", "lumens": 800, "alwaysOn": true, "basis": "assumed" },
+        { "id": "L_cor_2", "room": "corridor", "type": "ceiling", "fixture": "recessed downlight", "position": [0.6, -1.1, 2.45],  "colourK": 4000, "colour": "#FFD1A3", "lumens": 800, "alwaysOn": true, "basis": "assumed" },
+        { "id": "L_cor_3", "room": "corridor", "type": "ceiling", "fixture": "recessed downlight", "position": [3.7, -1.1, 2.45],  "colourK": 4000, "colour": "#FFD1A3", "lumens": 800, "alwaysOn": true, "basis": "assumed" },
+        { "id": "L_cor_4", "room": "corridor", "type": "ceiling", "fixture": "recessed downlight", "position": [6.8, -1.1, 2.45],  "colourK": 4000, "colour": "#FFD1A3", "lumens": 800, "alwaysOn": true, "basis": "assumed" },
+        { "id": "L_cor_5", "room": "corridor", "type": "ceiling", "fixture": "recessed downlight", "position": [9.6, -1.1, 2.45],  "colourK": 4000, "colour": "#FFD1A3", "lumens": 800, "alwaysOn": true, "basis": "assumed" }
+      ],
+
+      "switches": [
+        { "id": "S_hall",     "room": "hall",     "position": [1.15, 0.25, 1.1], "facing": "-x", "controls": ["L_hall_1", "L_hall_2"], "basis": "assumed" },
+        { "id": "S_main",     "room": "main",     "position": [1.35, 4.45, 1.1], "facing": "+y", "gangs": { "kitchen": ["L_kit_1", "L_kit_2", "L_kit_3"], "living": ["L_living"] }, "basis": "assumed" },
+        { "id": "S_undercab", "room": "main",     "position": [0.3, 5.35, 1.4],  "facing": "down", "controls": ["L_undercab"], "basis": "assumed" },
+        { "id": "S_bed",      "room": "bedroom",  "position": [4.1, 4.35, 1.05], "facing": "-y", "controls": ["L_bed"], "basis": "notes+assumed", "note": "notes: light switch and climate panel on the wall just inside the door" },
+        { "id": "S_bath",     "room": "bathroom", "position": [1.25, 1.85, 1.1], "facing": "+x", "controls": ["L_bath_bar"], "basis": "assumed" },
+        { "id": "S_closet",   "room": "bedroom",  "position": [3.05, 3.4, 1.1],  "facing": "+x", "controls": ["L_closet"], "basis": "assumed" }
+      ],
+
+      "furniture": [
+        { "id": "door_panel_in",  "type": "door_panel", "room": "hall",     "x": [1.11, 1.19], "y": [0.0, 0.03],  "z": [1.25, 1.55], "rotationDeg": 0,   "material": "plastic_white", "parts": ["glass reader (fingerprint and face)", "keypad, lights blue on touch", "status light red/green", "intercom grille", "talk button", "let-up button", "flush override plate over an empty slot"], "interact": ["buzz", "talk", "let_up", "lock_toggle"], "basis": "notes" },
+        { "id": "door_panel_out", "type": "door_panel", "room": "corridor", "x": [1.11, 1.19], "y": [-0.23, -0.2], "z": [1.25, 1.55], "rotationDeg": 180, "material": "plastic_white", "parts": ["glass reader", "keypad", "status light"], "basis": "notes" },
+        { "id": "thermostat",     "type": "thermostat", "room": "hall",     "x": [0.0, 0.03],  "y": [4.15, 4.27], "z": [1.45, 1.57], "rotationDeg": 270, "material": "plastic_white", "note": "controls the main room", "basis": "notes+assumed" },
+
+        { "id": "washer_dryer", "type": "washer_dryer_stack", "room": "laundry", "x": [1.30, 1.95], "y": [2.60, 3.20], "z": [0.0, 1.70], "rotationDeg": 90, "material": "plastic_white", "interact": ["run"], "basis": "notes" },
+        { "id": "detergent",    "type": "box",               "room": "laundry", "x": [1.55, 1.80], "y": [2.75, 2.95], "z": [1.70, 1.95], "rotationDeg": 90, "material": "paper", "basis": "notes+assumed" },
+
+        { "id": "coat_shelf",   "type": "shelf",    "room": "coat", "x": [1.65, 1.95], "y": [3.45, 4.35], "z": [1.78, 1.80], "rotationDeg": 90, "material": "furniture_white", "basis": "notes+assumed" },
+        { "id": "coat_rail",    "type": "rail",     "room": "coat", "x": [1.59, 1.61], "y": [3.45, 4.35], "z": [1.69, 1.71], "rotationDeg": 90, "material": "stainless", "basis": "notes+assumed" },
+        { "id": "coat_hers",    "type": "coat",     "room": "coat", "x": [1.40, 1.80], "y": [3.60, 3.75], "z": [0.75, 1.70], "rotationDeg": 90, "material": "fabric_dark", "basis": "notes+assumed" },
+        { "id": "shoes_hers",   "type": "shoes",    "room": "coat", "x": [1.30, 1.60], "y": [3.55, 3.95], "z": [0.0, 0.12],  "rotationDeg": 90, "material": "black_matte", "basis": "notes+assumed" },
+
+        { "id": "bath",          "type": "bath",          "room": "bathroom", "x": [1.25, 2.77], "y": [0.0, 0.76],  "z": [0.0, 0.5],  "rotationDeg": 0,   "material": "porcelain_white", "basis": "notes" },
+        { "id": "bath_ledge",    "type": "ledge",         "room": "bathroom", "x": [2.77, 2.95], "y": [0.0, 0.76],  "z": [0.0, 0.5],  "rotationDeg": 0,   "material": "tile_grey", "basis": "assumed", "note": "fills the 0.18 m gap between the 1.52 m bath and the wall" },
+        { "id": "shower_head",   "type": "shower_head",   "room": "bathroom", "x": [1.25, 1.35], "y": [0.33, 0.43], "z": [1.95, 2.05], "rotationDeg": 270, "material": "stainless", "basis": "notes+assumed" },
+        { "id": "shower_lever",  "type": "mixer_lever",   "room": "bathroom", "x": [1.25, 1.30], "y": [0.33, 0.43], "z": [1.05, 1.15], "rotationDeg": 270, "material": "stainless", "interact": ["shower"], "basis": "notes+assumed" },
+        { "id": "shower_curtain","type": "shower_curtain","room": "bathroom", "x": [1.25, 2.95], "y": [0.75, 0.77], "z": [0.55, 2.06], "rotationDeg": 0,   "material": "sheet_white", "interact": ["draw"], "basis": "notes+assumed" },
+        { "id": "toilet",        "type": "toilet",        "room": "bathroom", "x": [2.45, 3.0],  "y": [1.0, 1.4],   "z": [0.0, 0.78], "rotationDeg": 90,  "material": "porcelain_white", "interact": ["flush"], "basis": "notes" },
+        { "id": "vanity",        "type": "vanity",        "room": "bathroom", "x": [1.80, 2.60], "y": [1.85, 2.40], "z": [0.0, 0.85], "rotationDeg": 180, "material": "counter_grey", "parts": ["white basin", "one cupboard under", "tap"], "interact": ["tap", "open"], "basis": "notes" },
+        { "id": "mirror_cabinet","type": "mirror_cabinet","room": "bathroom", "x": [1.80, 2.60], "y": [2.23, 2.35], "z": [1.0, 1.7],  "rotationDeg": 180, "material": "mirror", "interact": ["open"],
+          "contentsByState": {
+            "A": ["box of plasters", "Venus's toothbrush (night of the get-together)"],
+            "B": ["box of plasters"],
+            "C": ["box of plasters", "pharmacy bag with her name on the label (her pain pills)"],
+            "D": ["box of plasters", "pharmacy bag, empty"],
+            "E": ["box of plasters", "pharmacy bag, empty"],
+            "F": ["box of plasters", "pharmacy bag, empty"]
+          },
+          "note": "the mirror is 'her cabinet'; three glass shelves", "basis": "notes+assumed" },
+        { "id": "towel_rail",    "type": "towel_rail",    "room": "bathroom", "x": [1.28, 1.75], "y": [2.30, 2.35], "z": [1.15, 1.25], "rotationDeg": 180, "material": "stainless", "parts": ["two plain grey towels"], "basis": "notes+assumed" },
+        { "id": "extractor",     "type": "extractor_fan", "room": "bathroom", "x": [2.30, 2.50], "y": [1.30, 1.50], "z": [2.58, 2.6],  "rotationDeg": 0,   "material": "plastic_white", "basis": "notes+assumed" },
+
+        { "id": "closet_rail",      "type": "rail",       "room": "walkin", "x": [2.29, 2.31], "y": [2.45, 4.0],  "z": [1.69, 1.71], "rotationDeg": 270, "material": "stainless", "basis": "notes" },
+        { "id": "closet_top_shelf", "type": "shelf",      "room": "walkin", "x": [2.05, 2.60], "y": [2.45, 4.0],  "z": [1.99, 2.01], "rotationDeg": 270, "material": "furniture_white", "note": "THE top shelf", "basis": "notes" },
+        { "id": "drawers_4",        "type": "drawer_unit","room": "walkin", "x": [2.05, 2.95], "y": [4.0, 4.35],  "z": [0.0, 1.0],   "rotationDeg": 180, "material": "furniture_white", "drawers": 4, "note": "top drawer is his drawer", "interact": ["open"],
+          "contentsByState": { "A": { "top": ["his things", "pharmacy bag with her name on it"] }, "B": { "top": ["his things", "pharmacy bag with her name on it"] }, "C": { "top": [] }, "D": { "top": [] }, "E": { "top": [] }, "F": { "top": [] } },
+          "basis": "notes" },
+        { "id": "clothes_hers",     "type": "hanging_clothes", "room": "walkin", "x": [2.05, 2.55], "y": [2.45, 3.2], "z": [0.9, 1.7], "rotationDeg": 270, "material": "fabric_dark", "note": "few, dark, the same few things", "basis": "notes" },
+        { "id": "clothes_his",      "type": "hanging_clothes", "room": "walkin", "x": [2.05, 2.55], "y": [3.2, 4.0],  "z": [0.9, 1.7], "rotationDeg": 270, "material": "fabric_dark", "states": ["A", "B"], "basis": "notes" },
+        { "id": "hangers_bare",     "type": "bare_hangers",    "room": "walkin", "x": [2.05, 2.55], "y": [3.2, 4.0],  "z": [1.5, 1.7], "rotationDeg": 270, "material": "plastic_white", "states": ["C", "D", "E", "F"], "basis": "notes" },
+        { "id": "his_box",          "type": "box",             "room": "walkin", "x": [2.0, 2.5],   "y": [3.3, 3.8],  "z": [2.01, 2.31], "rotationDeg": 270, "material": "cardboard", "states": ["C", "D", "E", "F"], "note": "packed by category, kept, shut until the reunion", "basis": "notes" },
+
+        { "id": "bed",            "type": "bed_queen",     "room": "bedroom", "x": [4.47, 6.5],  "y": [1.44, 2.96], "z": [0.0, 0.55], "rotationDeg": 90, "material": "duvet_grey", "headboard": { "x": [6.42, 6.5], "z": [0.0, 1.1], "material": "headboard_grey" }, "parts": ["white sheets", "one grey duvet", "two pillows"], "sides": { "hers": "y > 2.2 (door side)", "his": "y < 2.2 (wall side)" }, "basis": "notes" },
+        { "id": "bedside_table",  "type": "bedside_table", "room": "bedroom", "x": [6.05, 6.5],  "y": [3.05, 3.5],  "z": [0.0, 0.55], "rotationDeg": 90, "material": "furniture_white", "drawers": 1, "interact": ["open"], "basis": "notes" },
+        { "id": "ribbon",         "type": "ribbon",        "room": "bedroom", "x": [6.15, 6.30], "y": [3.15, 3.25], "z": [0.55, 0.56], "rotationDeg": 0, "material": "sheet_white", "states": ["A"], "note": "her white ribbon (Ch1 Sc5)", "basis": "notes+assumed" },
+        { "id": "phone_bedside",  "type": "phone",         "room": "bedroom", "x": [6.30, 6.38], "y": [3.30, 3.45], "z": [0.55, 0.56], "rotationDeg": 0, "material": "black_glass", "states": ["A", "B", "C"], "note": "charges here", "basis": "notes" },
+        { "id": "climate_panel",  "type": "climate_panel", "room": "bedroom", "x": [4.04, 4.16], "y": [4.32, 4.35], "z": [1.36, 1.44], "rotationDeg": 180, "material": "plastic_white", "note": "small grey screen, temperature and fan symbol; Venus's preset is the one saved slot", "interact": ["preset"], "basis": "notes" },
+        { "id": "air_grille",     "type": "grille",        "room": "bedroom", "x": [3.2, 4.0],   "y": [4.35, 4.45], "z": [2.2, 2.4], "rotationDeg": 180, "material": "grille_grey", "note": "above the bedroom door, through the wall", "basis": "notes+assumed" },
+        { "id": "desk_bedroom",   "type": "desk",          "room": "bedroom", "x": [3.3, 4.7],   "y": [0.0, 0.7],   "z": [0.0, 0.75], "rotationDeg": 0, "material": "furniture_white", "states": ["A", "B", "C"], "source": "Charlotte (work item)", "note": "cables taped down along the back edge", "basis": "notes" },
+        { "id": "chair_bedroom",  "type": "task_chair",    "room": "bedroom", "x": [3.75, 4.35], "y": [0.75, 1.35], "z": [0.0, 0.95], "rotationDeg": 180, "material": "black_matte", "states": ["A", "B", "C"], "basis": "notes+assumed" },
+        { "id": "monitor_bedroom","type": "monitor",       "room": "bedroom", "x": [3.95, 4.50], "y": [0.10, 0.30], "z": [0.75, 1.15], "rotationDeg": 0, "material": "black_matte", "states": ["A", "B", "C"], "basis": "notes+assumed" },
+        { "id": "keyboard_bedroom","type": "keyboard",     "room": "bedroom", "x": [3.90, 4.35], "y": [0.38, 0.53], "z": [0.75, 0.78], "rotationDeg": 0, "material": "black_matte", "states": ["A", "B", "C"], "basis": "notes+assumed" },
+        { "id": "laptop",         "type": "laptop",        "room": "bedroom|main", "material": "black_matte",
+          "byState": {
+            "A": { "room": "bedroom", "x": [3.50, 3.85], "y": [0.20, 0.44], "z": [0.75, 0.77], "rotationDeg": 0 },
+            "B": { "room": "main",    "x": [3.15, 3.47], "y": [6.98, 7.22], "z": [0.35, 0.37], "rotationDeg": 270, "note": "on her knees, on the floor, back against the island" },
+            "C": { "room": "bedroom", "x": [3.50, 3.85], "y": [0.20, 0.44], "z": [0.75, 0.77], "rotationDeg": 0 },
+            "D": { "room": "main",    "x": [5.85, 6.17], "y": [9.38, 9.62], "z": [0.75, 0.77], "rotationDeg": 270 },
+            "E": { "room": "main",    "x": [5.85, 6.17], "y": [9.38, 9.62], "z": [0.75, 0.77], "rotationDeg": 270 },
+            "F": { "room": "main",    "x": [5.85, 6.17], "y": [9.38, 9.62], "z": [0.75, 0.77], "rotationDeg": 270 }
+          },
+          "basis": "notes+assumed" },
+        { "id": "desk_lamp",      "type": "task_lamp",     "room": "bedroom|main", "material": "black_matte", "light": "L_desk_lamp",
+          "byState": {
+            "A": { "room": "bedroom", "x": [4.50, 4.65], "y": [0.10, 0.25], "z": [0.75, 1.20], "rotationDeg": 0 },
+            "B": { "room": "bedroom", "x": [4.50, 4.65], "y": [0.10, 0.25], "z": [0.75, 1.20], "rotationDeg": 0 },
+            "C": { "room": "bedroom", "x": [4.50, 4.65], "y": [0.10, 0.25], "z": [0.75, 1.20], "rotationDeg": 0 },
+            "D": { "room": "main",    "x": [6.30, 6.45], "y": [9.45, 9.60], "z": [0.75, 1.20], "rotationDeg": 270, "note": "turned to face the wall" },
+            "E": { "room": "main",    "x": [6.30, 6.45], "y": [9.45, 9.60], "z": [0.75, 1.20], "rotationDeg": 270 },
+            "F": { "room": "main",    "x": [6.30, 6.45], "y": [9.45, 9.60], "z": [0.75, 1.20], "rotationDeg": 270 }
+          },
+          "interact": ["toggle", "turn_toward_wall"], "basis": "notes" },
+
+        { "id": "fridge",         "type": "fridge",        "room": "main", "x": [0.0, 0.75],  "y": [4.5, 5.25],  "z": [0.0, 1.75], "rotationDeg": 270, "material": "stainless", "doorHinge": "y = 4.5 side", "parts": ["freezer drawer at the bottom", "nothing on the door"], "interact": ["open"],
+          "contentsByState": {
+            "A": ["eggs", "bread", "orange juice", "butter", "containers labelled in his handwriting on masking tape"],
+            "B": ["his labelled containers", "eggs", "orange juice"],
+            "C": ["two of his containers", "milk"],
+            "D": ["almost nothing: one container, a bottle of water"],
+            "E": ["almost nothing"],
+            "F": ["empty, switched off, door ajar"]
+          },
+          "basis": "notes+assumed" },
+        { "id": "base_cabinets_1","type": "base_cabinets", "room": "main", "x": [0.0, 0.65],  "y": [5.25, 6.6],  "z": [0.0, 0.91], "rotationDeg": 270, "material": "cabinet_white", "top": "counter_grey", "interact": ["open"], "contents": ["six plain white plates", "six bowls", "mugs", "glasses"], "basis": "notes+assumed" },
+        { "id": "range",          "type": "range",         "room": "main", "x": [0.0, 0.65],  "y": [6.6, 7.36],  "z": [0.0, 0.91], "rotationDeg": 270, "material": "stainless", "top": "black_glass", "note": "electric", "interact": ["hob"], "basis": "notes" },
+        { "id": "base_cabinets_2","type": "base_cabinets", "room": "main", "x": [0.0, 0.65],  "y": [7.36, 9.7],  "z": [0.0, 0.91], "rotationDeg": 270, "material": "cabinet_white", "top": "counter_grey", "cutout": { "y": [8.3, 9.0], "for": "sink" }, "interact": ["open"], "contents": ["Venus's pans", "the good knife", "the chopping board"], "basis": "notes+assumed" },
+        { "id": "sink",           "type": "sink",          "room": "main", "x": [0.05, 0.60], "y": [8.3, 9.0],   "z": [0.70, 0.91], "rotationDeg": 270, "material": "stainless", "parts": ["one bowl", "tap at x 0.08, y 8.65, up to 1.25 m"], "interact": ["tap"], "basis": "notes" },
+        { "id": "microwave",      "type": "microwave",     "room": "main", "x": [0.0, 0.40],  "y": [6.6, 7.36],  "z": [1.5, 1.9],  "rotationDeg": 270, "material": "stainless", "basis": "notes" },
+        { "id": "uppers_1",       "type": "upper_cabinets","room": "main", "x": [0.0, 0.35],  "y": [5.25, 6.6],  "z": [1.45, 2.2], "rotationDeg": 270, "material": "cabinet_white", "interact": ["open"], "basis": "notes+assumed" },
+        { "id": "uppers_over_mw", "type": "upper_cabinets","room": "main", "x": [0.0, 0.35],  "y": [6.6, 7.36],  "z": [1.9, 2.2],  "rotationDeg": 270, "material": "cabinet_white", "interact": ["open"], "basis": "assumed" },
+        { "id": "uppers_2",       "type": "upper_cabinets","room": "main", "x": [0.0, 0.35],  "y": [7.36, 8.3],  "z": [1.45, 2.2], "rotationDeg": 270, "material": "cabinet_white", "interact": ["open"], "basis": "notes+assumed" },
+        { "id": "kettle",         "type": "kettle",        "room": "main", "x": [0.20, 0.40], "y": [7.95, 8.15], "z": [0.91, 1.16], "rotationDeg": 270, "material": "plastic_white", "source": "Charlotte (the only kitchen thing she chose)", "interact": ["boil"], "basis": "notes+assumed" },
+        { "id": "drying_rack",    "type": "drying_rack",   "room": "main", "x": [0.10, 0.45], "y": [9.0, 9.6],   "z": [0.91, 1.15], "rotationDeg": 270, "material": "stainless", "contentsByState": { "D": ["one plate, dry"], "E": ["one plate, dry"] }, "basis": "notes" },
+        { "id": "island",         "type": "island",        "room": "main", "x": [1.75, 2.95], "y": [6.2, 8.2],   "z": [0.0, 0.91], "rotationDeg": 90, "material": "cabinet_white", "top": "counter_grey", "base": { "x": [1.75, 2.65] }, "overhang": { "x": [2.65, 2.95], "side": "living" }, "note": "THE counter of the scene pages; bare cupboards on the kitchen side", "interact": ["open"], "basis": "notes" },
+        { "id": "stool_1",        "type": "bar_stool",     "room": "main", "x": [2.70, 3.10], "y": [6.4, 6.8],   "z": [0.0, 0.65], "rotationDeg": 90, "material": "black_metal", "seat": "seat_grey", "basis": "notes" },
+        { "id": "stool_2",        "type": "bar_stool",     "room": "main", "x": [2.70, 3.10], "y": [7.4, 7.8],   "z": [0.0, 0.65], "rotationDeg": 90, "material": "black_metal", "seat": "seat_grey", "basis": "notes" },
+        { "id": "keys",           "type": "keys",          "room": "main", "x": [2.25, 2.45], "y": [7.10, 7.20], "z": [0.91, 0.93], "rotationDeg": 0, "material": "stainless", "states": ["E"], "note": "building fob and mailbox key on one ring, laid out, not dropped (Call 3)", "basis": "notes+assumed" },
+
+        { "id": "media_unit",     "type": "media_unit",    "room": "main", "x": [4.3, 6.1],   "y": [4.4, 4.85],  "z": [0.0, 0.5],  "rotationDeg": 0, "material": "furniture_white", "source": "Venus", "basis": "notes" },
+        { "id": "tv",             "type": "tv_55",         "room": "main", "x": [4.58, 5.82], "y": [4.45, 4.52], "z": [0.55, 1.27], "rotationDeg": 0, "material": "black_glass", "stand": { "x": [5.05, 5.35], "y": [4.47, 4.70], "z": [0.5, 0.55] }, "source": "Venus", "interact": ["power"], "tvOnByState": { "A": "on during the get-together, otherwise standby", "B": "standby", "C": "standby", "D": "standby", "E": "standby", "F": "standby" }, "basis": "notes" },
+        { "id": "console",        "type": "game_console",  "room": "main", "x": [5.90, 6.00], "y": [4.50, 4.76], "z": [0.5, 0.89], "rotationDeg": 0, "material": "plastic_white", "note": "white, upright; Scott's, he left it there", "dustFromState": "B", "basis": "notes+assumed" },
+        { "id": "controllers",    "type": "game_controllers", "room": "main", "x": [5.85, 6.05], "y": [4.76, 4.85], "z": [0.5, 0.56], "rotationDeg": 0, "material": "plastic_white", "count": 2, "dustFromState": "B", "basis": "notes" },
+        { "id": "game_cases",     "type": "game_cases",    "room": "main", "x": [5.55, 5.75], "y": [4.62, 4.80], "z": [0.5, 0.545], "rotationDeg": 0, "material": "record_sleeves", "count": 3, "basis": "notes+assumed" },
+        { "id": "couch",          "type": "couch_3seat",   "room": "main", "x": [4.1, 6.3],   "y": [7.0, 7.95],  "z": [0.0, 0.85], "rotationDeg": 180, "material": "couch_bluegreen", "seatHeight": 0.45, "parts": ["loose back cushions"], "wornEnd": "x = 4.1 (Michael's end, nearest the kitchen)", "source": "Venus", "basis": "notes" },
+        { "id": "pages_on_couch", "type": "paper_sheets",  "room": "main", "x": [4.15, 6.25], "y": [7.05, 7.75], "z": [0.45, 0.47], "rotationDeg": 180, "material": "paper", "states": ["D", "E"], "note": "handwritten, edge to edge, numbered top right, same pen; creased from 27 Oct; in E she lifts them off", "interact": ["lift_off"], "basis": "notes" },
+        { "id": "record_shelf",   "type": "low_shelf",     "room": "main", "x": [6.15, 6.5],  "y": [5.3, 6.5],   "z": [0.0, 0.75], "rotationDeg": 90, "material": "furniture_white", "source": "Venus", "basis": "notes" },
+        { "id": "turntable",      "type": "turntable",     "room": "main", "x": [6.17, 6.49], "y": [5.68, 6.12], "z": [0.75, 0.88], "rotationDeg": 90, "material": "furniture_white", "note": "lid closed, one record on the platter (piece not chosen)", "interact": ["play"], "source": "Venus", "basis": "notes+assumed" },
+        { "id": "speaker_1",      "type": "speaker",       "room": "main", "x": [6.20, 6.48], "y": [5.32, 5.50], "z": [0.75, 1.0], "rotationDeg": 90, "material": "black_matte", "basis": "notes+assumed" },
+        { "id": "speaker_2",      "type": "speaker",       "room": "main", "x": [6.20, 6.48], "y": [6.30, 6.48], "z": [0.75, 1.0], "rotationDeg": 90, "material": "black_matte", "basis": "notes+assumed" },
+        { "id": "records_8",      "type": "records",       "room": "main", "x": [6.18, 6.47], "y": [5.80, 5.84], "z": [0.05, 0.37], "rotationDeg": 90, "material": "record_sleeves", "count": 8, "note": "upright inside the shelf, still in shop wrap; in A a new one stands at the front", "source": "Venus", "basis": "notes+assumed" },
+        { "id": "convector",      "type": "convector_heater", "room": "main", "x": [0.0, 6.5], "y": [9.85, 10.0], "z": [0.0, 0.25], "rotationDeg": 0, "material": "grille_grey", "basis": "notes" },
+
+        { "id": "desk_main",      "type": "desk",          "room": "main", "x": [5.8, 6.5],   "y": [8.4, 9.8],   "z": [0.0, 0.75], "rotationDeg": 90, "material": "furniture_white", "states": ["D", "E", "F"], "note": "same desk as the bedroom one, faces the wall x = 6.5", "basis": "notes" },
+        { "id": "chair_main",     "type": "task_chair",    "room": "main", "x": [5.2, 5.75],  "y": [8.82, 9.38], "z": [0.0, 0.95], "rotationDeg": 270, "material": "black_matte", "states": ["D", "E", "F"], "basis": "notes+assumed" },
+        { "id": "monitor_main",   "type": "monitor",       "room": "main", "x": [6.28, 6.45], "y": [8.80, 9.35], "z": [0.75, 1.15], "rotationDeg": 90, "material": "black_matte", "states": ["D", "E", "F"], "note": "shows her tracker from 20 Oct 2026, refreshing on its own; dimmed", "basis": "notes+assumed" },
+        { "id": "keyboard_main",  "type": "keyboard",      "room": "main", "x": [5.88, 6.03], "y": [8.85, 9.30], "z": [0.75, 0.78], "rotationDeg": 90, "material": "black_matte", "states": ["D", "E", "F"], "basis": "notes+assumed" },
+        { "id": "pill_strip",     "type": "pill_strip",    "room": "main", "x": [5.81, 5.86], "y": [8.66, 8.80], "z": [0.75, 0.755], "rotationDeg": 90, "material": "stainless", "states": ["D", "E"], "note": "empty, squared to the edge of the desk by the keyboard", "basis": "notes" },
+        { "id": "phone_desk",     "type": "phone",         "room": "main", "x": [5.85, 5.93], "y": [8.48, 8.63], "z": [0.75, 0.76], "rotationDeg": 90, "material": "black_glass", "states": ["D", "E"], "note": "face up", "basis": "notes" },
+        { "id": "mug",            "type": "mug",           "room": "main", "x": [6.00, 6.09], "y": [8.48, 8.57], "z": [0.75, 0.85], "rotationDeg": 90, "material": "porcelain_white", "states": ["D", "E"], "note": "with a skin on it", "basis": "notes" },
+        { "id": "printouts",      "type": "paper_sheets",  "room": "main", "x": [6.05, 6.28], "y": [8.62, 8.78], "z": [0.75, 0.76], "rotationDeg": 90, "material": "paper", "states": ["D", "E", "F"], "note": "with rings on them", "basis": "notes+assumed" },
+        { "id": "boxes_packed",   "type": "boxes_open",    "room": "main", "x": [3.4, 4.6],   "y": [8.5, 9.1],   "z": [0.0, 0.45], "rotationDeg": 0, "material": "cardboard", "count": 3, "states": ["E", "F"], "note": "a few boxes with their flaps up", "basis": "notes+assumed" }
+      ],
+
+      "corridorProps": [
+        { "id": "unit_number_plate", "type": "sign", "room": "corridor", "x": [1.30, 1.45], "y": [-0.22, -0.2], "z": [1.55, 1.65], "text": null, "note": "unit number not set (Derrick's to choose)", "basis": "notes" }
+      ]
+    }
+  ],
+
+  "stairs": {
+    "list": [],
+    "note": "single-storey unit; the building is reached by its two lifts, which are not modelled beyond the corridor's lift doors"
+  },
+
+  "lightingPresets": [
+    { "id": "phase1_morning", "label": "Phase 1 morning", "state": "A", "dateTime": "2026-06-18T07:30", "curtains": "open", "lightsOn": [], "doors": { "D_bedroom": "closed" }, "tv": "standby", "note": "low warm sun from the left; long light across the floor and island; bedroom pitch dark", "basis": "notes" },
+    { "id": "phase1_night",   "label": "Phase 1 night (the get-together)", "state": "A", "dateTime": "2026-06-17T23:00", "curtains": "open", "lightsOn": ["L_hall_1", "L_hall_2", "L_kit_1", "L_kit_2", "L_kit_3", "L_living", "L_undercab"], "tv": "on", "event": "get_together", "note": "city lights through the glass; sunset is 22:01 on 17 Jun, so 23:00 is the earliest time it reads as night", "basis": "notes+assumed" },
+    { "id": "phase6_night",   "label": "Phase 6 night", "state": "D", "dateTime": "2026-10-20T23:00", "curtains": "closed", "lightsOn": ["L_desk_lamp", "I_monitor"], "tv": "standby", "note": "desk lamp a pool of light on white paint; red standby dot; door panel red down the hall", "basis": "notes" },
+    { "id": "phase7_afternoon","label": "Phase 7 afternoon", "state": "E", "dateTime": "2026-11-07T14:30", "curtains": "closed", "lightsOn": ["L_desk_lamp", "L_undercab", "I_monitor"], "tv": "standby", "note": "grey daylight leaking at the curtain edges", "basis": "notes" }
+  ],
+
+  "timeOfDay": {
+    "clockSpeed": 60,
+    "clockSpeedNote": "game seconds per real second; 60 means one game minute per real second",
+    "presets": [
+      { "id": "morning", "time": "07:30" },
+      { "id": "noon", "time": "13:58", "note": "solar noon in June (clock is about 2 hours ahead of the sun here in summer)" },
+      { "id": "night", "time": "23:00" },
+      { "id": "winter_night_frost", "date": "2027-01-20", "time": "23:00", "frost": true, "snow": true, "harbourFrozen": true }
+    ],
+    "frost": { "where": "corners of the glass", "when": "outdoor temperature below -15 C, December to February nights", "basis": "notes+assumed" },
+    "season": { "snowCover": ["11-20", "04-10"], "harbourFrozen": ["01-10", "04-05"], "heatingOn": ["10-01", "04-30"], "basis": "assumed" }
+  },
+
+  "npcs": {
+    "spots": {
+      "bed_his":        { "room": "bedroom", "x": 5.5,  "y": 1.85, "pose": "lying", "facingDeg": 90 },
+      "bed_hers":       { "room": "bedroom", "x": 5.5,  "y": 2.55, "pose": "lying", "facingDeg": 90 },
+      "bedroom_desk":   { "room": "bedroom", "x": 4.05, "y": 1.05, "pose": "sitting", "facingDeg": 180 },
+      "shower":         { "room": "bathroom","x": 2.0,  "y": 0.38, "pose": "standing_in_bath", "facingDeg": 90 },
+      "vanity":         { "room": "bathroom","x": 2.2,  "y": 1.55, "pose": "standing", "facingDeg": 0 },
+      "curtains":       { "room": "main",    "x": 3.25, "y": 9.45, "pose": "standing", "facingDeg": 0 },
+      "range":          { "room": "main",    "x": 1.0,  "y": 6.98, "pose": "standing", "facingDeg": 90 },
+      "beside_range":   { "room": "main",    "x": 1.15, "y": 7.75, "pose": "standing", "facingDeg": 90 },
+      "island_galley":  { "room": "main",    "x": 1.45, "y": 7.2,  "pose": "standing", "facingDeg": 270 },
+      "island_living":  { "room": "main",    "x": 3.25, "y": 7.1,  "pose": "standing", "facingDeg": 90 },
+      "floor_by_island":{ "room": "main",    "x": 3.25, "y": 7.1,  "pose": "sitting_floor", "facingDeg": 270 },
+      "kettle":         { "room": "main",    "x": 0.9,  "y": 8.05, "pose": "standing", "facingDeg": 90 },
+      "couch_left":     { "room": "main",    "x": 4.45, "y": 7.5,  "pose": "sitting", "facingDeg": 180 },
+      "couch_middle":   { "room": "main",    "x": 5.2,  "y": 7.5,  "pose": "sitting", "facingDeg": 180 },
+      "couch_right":    { "room": "main",    "x": 5.95, "y": 7.5,  "pose": "sitting", "facingDeg": 180 },
+      "floor_before_tv":{ "room": "main",    "x": 4.75, "y": 6.75, "pose": "sitting_floor", "facingDeg": 180 },
+      "main_desk":      { "room": "main",    "x": 5.47, "y": 9.1,  "pose": "sitting", "facingDeg": 270 },
+      "standing_room":  { "room": "main",    "x": 3.4,  "y": 6.2,  "pose": "standing", "facingDeg": 270 },
+      "walkin":         { "room": "walkin",  "x": 2.75, "y": 3.4,  "pose": "standing", "facingDeg": 90 },
+      "hall_door":      { "room": "hall",    "x": 0.6,  "y": 0.7,  "pose": "standing", "facingDeg": 180 },
+      "away":           { "room": "corridor","x": -3.6, "y": -1.1, "pose": "hidden", "note": "walks out through D_front to the lift, then disappears" }
+    },
+    "waypoints": {
+      "tidy_loop": [[1.4, 7.2], [3.5, 6.0], [5.2, 6.2], [5.6, 8.6], [2.3, 9.2], [1.4, 7.2]]
+    },
+    "characters": [
+      { "id": "venus", "name": "Venus", "role": "lives here secretly in Phase 1; bought almost every soft or coloured thing", "height": 1.85, "placeholderColour": "#5B6E8C", "states": ["A"], "basis": "assumed (height and colour)",
+        "routine": { "A": [
+          { "from": "00:00", "to": "07:00", "spot": "bed_his", "activity": "asleep (no daylight reaches the bed)" },
+          { "from": "07:00", "to": "07:03", "spot": "curtains", "activity": "opens the curtains" },
+          { "from": "07:03", "to": "07:35", "spot": "range", "activity": "omelet, bread, orange juice" },
+          { "from": "07:35", "to": "07:55", "spot": "island_galley", "activity": "packs her breakfast" },
+          { "from": "07:55", "to": "08:27", "path": "tidy_loop", "activity": "tidies, 32 minutes exactly" },
+          { "from": "08:27", "to": "08:32", "spot": "hall_door", "activity": "leaves" },
+          { "from": "08:32", "to": "18:30", "spot": "away" },
+          { "from": "18:30", "to": "19:30", "spot": "range", "activity": "cooks; labels containers" },
+          { "from": "19:30", "to": "22:30", "spot": "couch_right", "activity": "at the couch's far end" },
+          { "from": "22:30", "to": "22:45", "spot": "shower", "activity": "cold shower before bed" },
+          { "from": "22:45", "to": "24:00", "spot": "bed_his", "activity": "in bed" }
+        ] } },
+      { "id": "charlotte", "name": "Charlotte", "role": "the tenant; the player by default", "height": 1.72, "placeholderColour": "#2B2B2E", "onlyWhenPlayerIs": "observer", "basis": "assumed (routine, height from eye height 1.6)",
+        "routine": {
+          "A": [
+            { "from": "00:00", "to": "06:50", "spot": "bed_hers", "activity": "asleep" },
+            { "from": "06:50", "to": "07:05", "spot": "vanity", "activity": "bathroom" },
+            { "from": "07:05", "to": "07:35", "spot": "bedroom_desk", "activity": "checks work" },
+            { "from": "07:35", "to": "07:55", "spot": "island_living", "activity": "breakfast at the counter" },
+            { "from": "07:55", "to": "08:00", "spot": "hall_door", "activity": "leaves first" },
+            { "from": "08:00", "to": "19:30", "spot": "away" },
+            { "from": "19:30", "to": "22:30", "spot": "bedroom_desk", "activity": "works at home" },
+            { "from": "22:30", "to": "22:45", "spot": "shower", "activity": "cold shower before bed" },
+            { "from": "22:45", "to": "24:00", "spot": "bed_hers", "activity": "asleep" }
+          ],
+          "B": [
+            { "from": "00:00", "to": "08:30", "spot": "bed_hers", "activity": "awake in the dark" },
+            { "from": "08:30", "to": "10:00", "spot": "bedroom_desk", "activity": "works" },
+            { "from": "10:00", "to": "10:02", "spot": "curtains", "activity": "draws them across the whole wall for the first time" },
+            { "from": "10:02", "to": "13:00", "spot": "floor_by_island", "activity": "laptop on her knees, music on" },
+            { "from": "13:00", "to": "13:15", "spot": "island_living", "activity": "eats his food standing at the counter" },
+            { "from": "13:15", "to": "23:30", "spot": "floor_by_island", "activity": "works; Michael calls, she answers in data" },
+            { "from": "23:30", "to": "24:00", "spot": "bed_hers" }
+          ],
+          "C": [
+            { "from": "00:00", "to": "07:00", "spot": "bed_hers" },
+            { "from": "07:00", "to": "15:00", "spot": "bedroom_desk", "activity": "works" },
+            { "from": "15:00", "to": "16:00", "spot": "walkin", "activity": "packs his clothes into a box by category; box to the top shelf; pharmacy bag to her cabinet" },
+            { "from": "16:00", "to": "18:00", "spot": "bedroom_desk" },
+            { "from": "18:00", "to": "18:45", "spot": "standing_room", "activity": "Paulina's visit (event)" },
+            { "from": "18:45", "to": "24:00", "spot": "bedroom_desk" }
+          ],
+          "D": [
+            { "from": "00:00", "to": "03:00", "spot": "main_desk", "activity": "tracker on screen, lamp to the wall" },
+            { "from": "03:00", "to": "09:00", "spot": "bed_hers" },
+            { "from": "09:00", "to": "24:00", "spot": "main_desk" }
+          ],
+          "E": [
+            { "from": "00:00", "to": "08:00", "spot": "bed_hers" },
+            { "from": "08:00", "to": "14:00", "spot": "main_desk" },
+            { "from": "14:00", "to": "15:10", "spot": "standing_room", "activity": "Darton's visit (event)" },
+            { "from": "15:10", "to": "24:00", "spot": "main_desk", "activity": "one line in a page's margin" }
+          ],
+          "F": [
+            { "from": "00:00", "to": "24:00", "spot": "away", "activity": "sleeps below, at VORD" }
+          ]
+        } },
+      { "id": "hamster", "name": "Hamster", "role": "cooks here with her", "height": 1.75, "placeholderColour": "#8C6A4F", "states": ["A"], "eventOnly": true, "basis": "assumed (height and colour)" },
+      { "id": "michael", "name": "Michael", "role": "always claims the couch", "height": 1.80, "placeholderColour": "#4F7A5B", "states": ["A"], "eventOnly": true, "basis": "assumed (height and colour)" },
+      { "id": "scott", "name": "Scott", "role": "his PlayStation; sits on the floor", "height": 1.78, "placeholderColour": "#8C4F4F", "states": ["A"], "eventOnly": true, "basis": "assumed (height and colour)" },
+      { "id": "paulina", "name": "Paulina", "role": "visitor, Ch9 Sc4", "height": 1.68, "placeholderColour": "#7A5B8C", "states": ["C"], "eventOnly": true, "basis": "assumed (height and colour)" },
+      { "id": "daniel", "name": "Daniel", "role": "visitor, Ch15 Sc3", "height": 1.80, "placeholderColour": "#5B7A8C", "states": ["D"], "eventOnly": true, "basis": "assumed (height and colour)" },
+      { "id": "darton", "name": "Darton", "role": "visitor on her birthday, Ch17 Sc3", "height": 1.80, "placeholderColour": "#6E6E6E", "states": ["E"], "eventOnly": true, "basis": "assumed (height and colour)" },
+      { "id": "clerk", "name": "Front desk clerk", "role": "voice on the intercom only", "voiceOnly": true, "source": "door_panel_in", "basis": "notes" }
+    ],
+    "events": [
+      { "id": "get_together", "state": "A", "date": "2026-06-17", "from": "19:00", "to": "23:30", "basis": "notes (staging) + assumed (times)",
+        "cast": [
+          { "who": "hamster",   "spot": "range", "activity": "cooking" },
+          { "who": "charlotte", "spot": "beside_range", "activity": "at the island beside him" },
+          { "who": "michael",   "spot": "couch_left", "activity": "his end of the couch" },
+          { "who": "scott",     "spot": "floor_before_tv", "activity": "on the floor, back against the couch, controller in hand" },
+          { "who": "venus",     "sequence": [ { "from": "19:00", "spot": "island_living" }, { "from": "20:30", "spot": "standing_room" }, { "from": "21:00", "spot": "couch_right", "activity": "sits at the far end after he picks Hamster" } ] }
+        ],
+        "sounds": ["party_chatter", "tv_game", "cooking_sizzle"] },
+      { "id": "paulina_visit", "state": "C", "date": "2026-08-18", "from": "18:00", "to": "18:45", "buzzAt": "17:58", "basis": "notes (she sits on the couch) + assumed (times)",
+        "cast": [ { "who": "paulina", "spot": "couch_middle", "activity": "sits before she is asked; takes inventory of what his money bought" } ] },
+      { "id": "daniel_visit", "state": "D", "date": "2026-10-20", "from": "19:30", "to": "20:00", "buzzAt": "19:28", "basis": "assumed",
+        "cast": [ { "who": "daniel", "spot": "standing_room", "activity": "stands; his eyes stop on the PlayStation, the records, the dark TV" } ] },
+      { "id": "darton_visit", "state": "E", "date": "2026-11-07", "from": "14:00", "to": "15:10", "buzzAt": "13:58", "basis": "notes (Saturday afternoon, couch, kettle) + assumed (times)",
+        "cast": [ { "who": "darton", "sequence": [ { "from": "14:00", "spot": "standing_room" }, { "from": "14:10", "spot": "kettle", "activity": "fills the kettle" }, { "from": "14:15", "spot": "couch_middle", "activity": "first to sit there since July, after she lifts the pages" } ] } ],
+        "triggers": ["pages_on_couch.lift_off at 14:12", "kettle.boil at 14:10 (nobody goes to it when it clicks)"] }
+    ]
+  },
+
+  "sounds": [
+    { "id": "fridge_hum",      "label": "Fridge hum",                  "source": { "object": "fridge" },          "loop": true,  "volume": 0.25, "refDistance": 1.5, "when": "always; compressor on 12 min, off 18 min; silent in state F", "basis": "notes+assumed" },
+    { "id": "intercom_buzz",   "label": "Reception buzz",              "source": { "object": "door_panel_in" },   "loop": false, "volume": 0.8,  "refDistance": 2.0, "when": "at each event's buzzAt; also on the panel's buzz button. From state D it is harsher (through her teeth)", "basis": "notes" },
+    { "id": "clerk_voice",     "label": "Clerk on the intercom",       "source": { "object": "door_panel_in" },   "loop": false, "volume": 0.6,  "refDistance": 1.5, "when": "after the buzz when 'talk' is pressed", "basis": "notes" },
+    { "id": "door_lock",       "label": "Lock: click, then the bolt's whirr", "source": { "door": "D_front" }, "loop": false, "volume": 0.5, "refDistance": 2.0, "when": "when the front door finishes closing", "basis": "notes" },
+    { "id": "door_closer",     "label": "Closer: slow shut, soft click", "source": { "door": "D_front" },      "loop": false, "volume": 0.4,  "refDistance": 2.0, "when": "when the front door self-closes", "basis": "notes" },
+    { "id": "kettle_boil",     "label": "Kettle heating",              "source": { "object": "kettle" },          "loop": false, "volume": 0.4,  "refDistance": 1.5, "durationS": 150, "when": "after 'boil'", "basis": "assumed" },
+    { "id": "kettle_click",    "label": "Kettle click",                "source": { "object": "kettle" },          "loop": false, "volume": 0.6,  "refDistance": 2.0, "when": "end of kettle_boil", "basis": "notes" },
+    { "id": "wind_glass",      "label": "Wind on the glass",           "source": { "line": [[0.0, 10.1, 1.3], [6.5, 10.1, 1.3]] }, "loop": true, "volume": 0.2, "refDistance": 3.0, "when": "always; x1.4 at night (22:00-06:00) and from October to March", "basis": "notes" },
+    { "id": "convector_tick",  "label": "Convector ticking",           "source": { "object": "convector" },       "loop": false, "volume": 0.3,  "refDistance": 2.0, "when": "heating season only; random ticks every 5-20 s for 10 min out of every 30, 17:00-09:00", "basis": "notes+assumed" },
+    { "id": "lift_chime",      "label": "Lift chime, faint",           "source": { "position": [-4.0, -1.1, 2.2] }, "loop": false, "volume": 0.35, "refDistance": 3.0, "when": "random every 4-15 min, 06:00-01:00; muffled by the front door when shut", "basis": "notes+assumed" },
+    { "id": "corridor_hum",    "label": "Corridor air handling hum",   "source": { "position": [3.0, -1.1, 2.3] }, "loop": true, "volume": 0.15, "refDistance": 4.0, "when": "always; audible in the hall only when the front door is open", "basis": "notes" },
+    { "id": "extractor_fan",   "label": "Bathroom extractor fan",      "source": { "object": "extractor" },       "loop": true,  "volume": 0.3,  "refDistance": 1.5, "when": "while L_bath_bar is on, and 10 minutes after it goes off", "basis": "notes" },
+    { "id": "record_play",     "label": "The record: three beats and a rest", "source": { "object": "turntable" }, "loop": true, "volume": 0.5, "refDistance": 3.0, "when": "after 'play' on the turntable; stop with 'play' again", "note": "piece not chosen; placeholder is three soft beats and a silent fourth", "basis": "notes" },
+    { "id": "shower_run",      "label": "Shower running",              "source": { "object": "shower_head" },     "loop": true,  "volume": 0.5,  "refDistance": 2.0, "when": "during routine 'shower' slots or the lever interaction", "basis": "assumed" },
+    { "id": "tv_game",         "label": "TV / game sound",             "source": { "object": "tv" },              "loop": true,  "volume": 0.4,  "refDistance": 3.0, "when": "during get_together only", "basis": "notes+assumed" },
+    { "id": "party_chatter",   "label": "Loud room",                   "source": { "position": [3.5, 7.0, 1.5] }, "loop": true,  "volume": 0.5,  "refDistance": 4.0, "when": "during get_together; drops to silence for the held silence when the record goes on", "basis": "notes" },
+    { "id": "cooking_sizzle",  "label": "Pan on the range",            "source": { "object": "range" },           "loop": true,  "volume": 0.35, "refDistance": 1.5, "when": "routine 'range' slots and get_together", "basis": "assumed" },
+    { "id": "washer_run",      "label": "Washer / dryer",              "source": { "object": "washer_dryer" },    "loop": true,  "volume": 0.4,  "refDistance": 1.5, "when": "after 'run'; 45 min", "basis": "assumed" },
+    { "id": "city_far",        "label": "Distant city",                "source": { "position": [3.25, 10.5, 1.3] }, "loop": true, "volume": 0.06, "refDistance": 3.0, "when": "07:00-22:00, muffled; curtains closed lower it a little", "basis": "assumed" },
+    { "id": "toilet_flush",    "label": "Toilet flush",                "source": { "object": "toilet" },          "loop": false, "volume": 0.5,  "refDistance": 2.0, "when": "on 'flush'", "basis": "assumed" },
+    { "id": "tap_run",         "label": "Tap running",                 "source": { "object": "sink|vanity" },     "loop": true,  "volume": 0.3,  "refDistance": 1.5, "when": "while a tap is on", "basis": "assumed" },
+    { "id": "curtain_draw",    "label": "Curtain on the track",        "source": { "object": "curtains" },        "loop": false, "volume": 0.3,  "refDistance": 2.0, "when": "when drawn or opened", "basis": "assumed" },
+    { "id": "switch_click",    "label": "Light switch",                "source": { "switch": "any" },             "loop": false, "volume": 0.2,  "refDistance": 1.0, "when": "on any switch", "basis": "assumed" },
+    { "id": "footsteps",       "label": "Player footsteps",            "source": { "player": true },              "loop": false, "volume": 0.15, "variants": { "vinyl_grey_wood": "soft tap", "tile_grey": "harder tap", "carpet_charcoal": "muffled" }, "when": "while walking", "basis": "assumed" },
+    { "id": "surge_child_voice","label": "A child's voice through the wall (optional Surge)", "source": { "position": [6.55, 6.0, 1.2] }, "loop": false, "volume": 0.12, "refDistance": 1.0, "enabledByDefault": false, "when": "state E only, once, if enabled", "basis": "notes (Derrick decides)" },
+    { "id": "surge_radio",     "label": "A radio behind the clerk's voice (optional Surge)", "source": { "object": "door_panel_in" }, "loop": false, "volume": 0.08, "enabledByDefault": false, "when": "state D, mixed under clerk_voice, if enabled", "basis": "notes (Derrick decides)" }
+  ],
+
+  "outdoors": {
+    "note": "Positions use bearing (degrees from true north) and distance (m) from the centre of the window wall; see coordinateSystem.planFromCompass. Ground is 61.5 m below the unit floor.",
+    "groundZ": -61.5,
+    "items": [
+      { "id": "ground",        "type": "ground_plane", "radius": 12000, "material": "grass and asphalt mix; snow-covered in season", "basis": "assumed" },
+      { "id": "forecourt",     "type": "parking_lot",  "bearingDeg": 135, "distance": 35, "size": [55, 40], "note": "the tower's own lot, straight below the window", "basis": "assumed" },
+      { "id": "street_main",   "type": "street",       "bearingDeg": 135, "distance": 70, "width": 14, "length": 3000, "runs": "across the view, NE to SW", "lit": "street lights every 35 m", "basis": "notes+assumed" },
+      { "id": "street_trees",  "type": "tree_row",     "along": "street_main", "offsets": [-11, 11], "spacing": 12, "length": 600, "height": 9, "kind": "deciduous; bare from late October to mid May", "basis": "assumed" },
+      { "id": "low_roofs",     "type": "residential_grid", "bearingRange": [60, 230], "distanceRange": [90, 3000], "lot": [15, 30], "height": [6, 9], "roofs": "low pitched and flat, grey and dark brown", "streetSpacing": 110, "trees": "one or two per lot", "nightWindowsLit": 0.2, "seed": 21, "basis": "notes+assumed" },
+      { "id": "near_block",    "type": "building",     "bearingDeg": 105, "distance": 140, "size": [40, 25, 14], "note": "nearest neighbouring building, 4 storeys; nothing nearby is taller than 16 storeys", "basis": "assumed" },
+      { "id": "parking_1",     "type": "parking_lot",  "bearingDeg": 120, "distance": 260, "size": [80, 60], "basis": "notes+assumed" },
+      { "id": "parking_2",     "type": "parking_lot",  "bearingDeg": 165, "distance": 520, "size": [120, 70], "basis": "notes+assumed" },
+      { "id": "church",        "type": "church",       "bearingDeg": 150, "distance": 900, "nave": [14, 32, 12], "spireHeight": 42, "basis": "notes+assumed" },
+      { "id": "lake_frame_1",  "type": "building",     "bearingDeg": 84,  "distance": 650, "size": [30, 40, 26], "note": "one of the two buildings that frame the lake sliver", "basis": "notes+assumed" },
+      { "id": "lake_frame_2",  "type": "building",     "bearingDeg": 96,  "distance": 620, "size": [30, 40, 26], "basis": "notes+assumed" },
+      { "id": "lake_sliver",   "type": "water",        "bearingRange": [87, 93], "distanceRange": [1500, 20000], "colour": "#7D8890", "frozenColour": "#E4E8EA", "note": "Lake Superior, a grey sliver at the far left edge between two buildings; frozen in deep winter. Kept to a narrow wedge on purpose so only the sliver shows", "basis": "notes+assumed" },
+      { "id": "hills",         "type": "ridge",        "bearingRange": [195, 255], "distanceRange": [6000, 9000], "height": [120, 280], "colour": "#3E4A44", "snow": true, "note": "a line of hills to the right", "basis": "notes+assumed" },
+      { "id": "radio_mast",    "type": "mast",         "bearingDeg": 175, "distance": 3200, "height": 110, "lights": { "heights": [37, 74, 110], "colour": "#FF2020", "blinkPerMinute": 30 }, "basis": "notes+assumed" },
+      { "id": "sky",           "type": "sky",          "model": "physical sky driven by the computed sun; city glow on the horizon at night", "basis": "assumed" }
+    ],
+    "notVisibleFromThisUnit": ["the whole bay", "the Sleeping Giant (east-face units only)"]
+  }
+}
