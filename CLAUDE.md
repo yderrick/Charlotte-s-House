@@ -14,7 +14,8 @@ A walkable, first-person 3D version of Charlotte's apartment (floor 21, Thunder 
 6. **The design notes win over `house.json` where they are clear.** `house.json` was written from Derrick's locked notes. Do not "improve" a value that has `"basis": "notes"`. Values with `"basis": "assumed"` may be changed, and the change goes in `ASSUMPTIONS.md`.
 7. **The furnishing rule is part of the brief:** nothing appears in the flat that is not in `house.json`. No extra props, art, plants, rugs or clocks for decoration.
 8. **No NPCs.** This location has no people. Do not add characters, routines or voices.
-9. **Walking must stay verified:** `npm run test:walk` must pass after any change to `house.json`, the layout code or the collision code.
+9. **Walking must stay verified:** `npm run test:walk` must pass after any change to `house.json`, the layout, door or collision code.
+10. **Interactions are data-driven.** Every interactive object has `interact: { type, action }` in `house.json`. The type's prompts live in `house.interaction.types`. Code only supplies a handler per type (see `src/interact/interaction.js`). Never hard-code a prompt or a per-object special case.
 
 ## Coordinates and conventions (from `house.json`)
 
@@ -32,6 +33,11 @@ A walkable, first-person 3D version of Charlotte's apartment (floor 21, Thunder 
   - The state switch runs A–F.
 - **Compass:** +y is bearing 135° (SE). The sun direction comes from `site.latitude`, `site.longitude` and `site.timeZone`. The solar-position formula is in `tools/lib.mjs` (`sunPosition`); port it, don't re-derive it.
 - **Outdoors:** items are placed by bearing and distance from the centre of the window wall (`coordinateSystem.planFromCompass`). Ground is at `outdoors.groundZ` (−61.5).
+- **Doors:**
+  - A hinged door's leaf hangs on the wall face on its `swingsInto` side, at the `hinge` end (`start` = `offsetAlongWall`).
+  - It swings from 0 to `maxOpenDeg`. Bifolds fold two leaves into `foldsInto`, up to `doorMotion.bifoldMaxOpenDeg`.
+  - Leaf positions come from `src/doors/kinematics.js`; both rendering and collision use it.
+- **Interaction:** a ray from the centre of the view, up to `interaction.maxDistance` (2.0 m). The first thing hit decides; a wall in the way blocks it. Meshes carry `userData.interactId` = the object's id.
 - **Lights:**
   - `lumens` is the source of truth. With `renderer.physicallyCorrectLights` / `useLegacyLights = false`, a point light's intensity in candela is `lumens / (4π)`, and a spot light's is `lumens / π` (approximately).
   - `colourK` is the colour temperature; `colour` is its sRGB approximation.
@@ -50,10 +56,16 @@ src/
   furniture/layout.js  pure: furniture boxes for a story state (island base/top, sink cut-out, seat backs, headboard)
   furniture/builder.js Three.js meshes for furniture (grey, outlined)
   player/collision.js  pure: circle-vs-box collision in plan space, sub-stepped moves
-  player/controls.js   pointer lock, mouse look, WASD + Shift, camera at eye height
+  player/controls.js   pointer lock, mouse look, WASD + Shift, camera at eye height (getColliders() each frame)
+  doors/kinematics.js  pure: hinge frame, leaf placement and collision segments for an angle (hinged and bifold)
+  doors/doors.js       pure: door state (angle -> target), stops against the player, self-closing + lock
+  doors/builder.js     Three.js leaves with handles; front door status lights (red locked / green open)
+  curtains/curtains.js pure: curtain halves, openness 0..1, extents and colliders
+  curtains/builder.js  Three.js pleated curtain halves on the ceiling track
+  interact/registry.js pure: collect every interact { type, action } from house.json; prompt lookup
+  interact/interaction.js  look-at raycast, prompt, E key; handlers by type are passed in from main.js
   lighting/flat.js     stage 1 flat lighting (hemisphere + ambient + one weak directional)
-  ui/hud.js            room name, position, compass heading
-  doors/               (stage 2) hinged and bifold doors, front door lock
+  ui/hud.js            room name, position, compass heading, interaction prompt
   lighting/            (stage 4) fixtures, switches, indicators, presets
   time/                (stage 5) clock, sun, sky, seasons
   outdoors/            (stage 5) street, roofs, church, lake sliver, hills, mast
@@ -69,8 +81,8 @@ tools/                 Node scripts (no dependencies): check-house.mjs, walk-tes
 | --- | --- | --- |
 | 0 | Planning: `house.json`, `ASSUMPTIONS.md`, `floorplan.svg`, checker | `npm run check` passes; plan reviewed |
 | 1 | Grey box: Vite + Three.js; floors, ceilings, walls with door and window openings; furniture boxes; first-person controls; collision; flat light; room HUD | You can walk through every room and can't pass through any wall |
-| 2 | Doors: hinged and bifold leaves, open/close on click, front door self-closes and shows red/green, door collision | Every door opens and shuts; closed doors block you |
-| 3 | Materials and colours from `house.json`; curtains (open/close); nicer furniture shapes inside the same footprints | Every item looks like what it is, at the size in the plan |
+| 2 | Doors and interaction: crosshair, look-at prompts, hinged and bifold leaves that swing, front door self-closes and shows red/green, door collision, curtains | Every door opens and closes; every room is reachable by opening doors |
+| 3 | Materials and colours from `house.json`; nicer furniture shapes inside the same footprints; cupboard and drawer handlers | Every item looks like what it is, at the size in the plan |
 | 4 | Lighting: every fixture, switches, indicators, shadows, the four lighting presets | Each switch works; presets match the notes |
 | 5 | Time of day: clock, sun from latitude and compass, sky, outdoor surroundings, seasons, frost | The morning sun comes in low from the left; night shows city lights |
 | 6 | Audio: positional sounds, schedules, triggers (buzz, kettle, record, fan) | Each sound plays from its place at its time |
@@ -83,7 +95,7 @@ npm install         # once
 npm run dev         # start the Vite dev server, open the printed URL (http://localhost:5173/)
 npm run build       # production build to dist/  (npm run preview serves it)
 npm run check       # validate house.json (rooms, doors, reachability, swings, furniture)
-npm run test:walk   # walk test with the real collision code: every room reachable, no wall passable
+npm run test:walk   # walk test with the real collision and door code: rooms reachable by opening doors, no wall passable
 npm run floorplan   # regenerate floorplan.svg from house.json (optional arg: state letter)
 ```
 
@@ -127,4 +139,33 @@ npm run floorplan   # regenerate floorplan.svg from house.json (optional arg: st
   - The walk-in aisle is narrow (0.47 m), so you slide along the clothes to get in.
   - The outside is a plain grey ground 61.5 m below the floor (outdoors comes in stage 5).
   - The production bundle is about 565 kB (144 kB gzipped, mostly Three.js), and Vite prints a chunk-size note.
+
+### Stage 2: Doors and interaction (done, 13 Oct 2026)
+
+- **Built:**
+  - **Crosshair:** a white dot with a dark ring in the centre of the screen.
+  - **Prompts:** looking at something interactive within 2.0 m shows a prompt such as "E – Open door" or "E – Close curtains" under the crosshair. Walls in the way block it.
+  - **Interaction system** (`src/interact/`): every interactive object in `house.json` now has `interact: { type, action }`. That covers 6 doors, the curtains, 24 furniture items and 6 switches. The 19 types and their prompts are in `house.interaction.types`.
+    - Handlers exist for `door`, `bifold` and `curtains`.
+    - Cupboards, drawers, switches, the kettle and the rest are already tagged and are ignored until their stage adds a handler. Adding one is a single entry in the `handlers` map in `src/main.js`.
+  - **Doors:** real leaves on their hinges, swinging smoothly (0.9 s) in the direction set in `house.json`.
+    - Hinged: front door, bathroom, bedroom and walk-in closet. Bifolds: the laundry and coat cupboards, two leaves each, folding into the hall.
+    - A closed door blocks you. An open door lets you through. A swinging door stops against you and carries on when you step back.
+    - The front door self-closes 4 s after opening (shutting over 5 s, slowly) and locks. Its panel lights show red when locked, green when open.
+  - **Curtains:** two pleated halves on the ceiling track. One press draws both across the glass (3 s) or back into their stacks at each end. They start open in state A and closed in B–F. Closed curtains block walking at the glass.
+  - **Collision:** now also handles door leaves as thick line segments that turn with the door.
+- **How to run:** `npm install`, then `npm run dev`, and open http://localhost:5173/. Click to start. Look at a door and press E. Add `?state=D` to see a story state with the curtains closed.
+- **Verified:**
+  - `npm run check`: 0 errors. It also checks every `interact` names a known type with the matching action.
+  - `npm run test:walk`, for each state A–F:
+    - With all doors closed, only the hall and main room are reachable.
+    - Starting all-closed and opening only doors within reach, all 6 doors get opened (front, bathroom, laundry, coat, bedroom, closet) and every room is reached.
+    - No door hits a wall or furniture anywhere in its swing (the check was tested against a deliberately bad swing, and caught it).
+    - All 5,108 attempts to walk through a wall are still blocked.
+  - In headless Chromium with the real E key, every door showed the right prompt, opened fully (95° front, 90° hinged, 80° bifolds) and closed again. A closed bedroom door stopped a walk at the doorway; open, the walk went through. The front door self-closed and re-locked. A door stopped at 57° against the player, then finished opening once they moved. The curtains closed to meet in the middle with a 10 cm overlap, and the prompt flipped. No console errors.
+- **Known problems:**
+  - The decor doors in the corridor (neighbours, lift) don't open; they aren't part of the flat.
+  - You can only grab the curtains where they hang. When they are open, that means the stacks at the two ends of the glass.
+  - The prompt for cupboards, switches, the fridge and other later types does not appear yet (no handler).
+  - Story states still come from the `?state=` URL parameter; there is no in-game switch until stage 7.
 

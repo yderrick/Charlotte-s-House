@@ -1,4 +1,5 @@
-// Small on-screen display: which room you are in, where, and which way you face.
+// Small on-screen display: which room you are in, where, which way you face,
+// and the interaction prompt under the crosshair.
 import { roomAt, bearingOf } from "../data/geometry.js";
 
 const COMPASS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
@@ -8,11 +9,16 @@ export function createHud(house, state) {
   const facing = house.site.facing.bearingDeg;
   const el = document.getElementById("hud");
   const overlay = document.getElementById("overlay");
+  const prompt = document.getElementById("prompt");
   let lastRoom = "";
 
   return {
     setLocked(locked) {
       overlay.hidden = locked;
+    },
+    setPrompt(text) {
+      if (prompt.textContent !== text) prompt.textContent = text;
+      prompt.hidden = !text;
     },
     update(player) {
       const { pos, yaw } = player.state;

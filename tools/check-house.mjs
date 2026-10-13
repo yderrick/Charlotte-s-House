@@ -129,6 +129,19 @@ for (const floor of house.floors) {
 
 }
 
+// 9. Interactions: every interact names a known type with a matching action.
+const types = house.interaction?.types ?? {};
+for (const f of house.floors) {
+  const things = [...f.doors, ...(f.curtains ? [f.curtains] : []), ...f.furniture, ...(f.switches ?? [])];
+  for (const t of things.filter((t) => t.interact)) {
+    const it = t.interact, type = types[it.type];
+    if (typeof it !== "object" || Array.isArray(it)) { err(`${t.id}: interact must be { type, action }`); continue; }
+    if (!type) err(`${t.id}: unknown interaction type ${it.type}`);
+    else if (it.action !== type.action) err(`${t.id}: action ${it.action} does not match type ${it.type} (${type.action})`);
+  }
+  for (const d of f.doors.filter((d) => (d.type === "hinged" || d.type === "bifold") && !d.interact)) err(`${d.id}: door has no interact`);
+}
+
 // 9. Spawn point inside its room.
 const sp = house.player.spawn;
 if (!house.floors.some((f) => f.rooms.some((r) => r.id === sp.room && inRect(sp.x, sp.y, r)))) err(`player spawn is not in ${sp.room}`);

@@ -28,6 +28,21 @@ New values added for walking (stage 1):
 - **Hanging clothes in the walk-in:** 0.40 m deep (x 2.08–2.48, was 2.05–2.55), so a 0.47 m aisle stays free to walk down.
 - **The laundry cupboard is look-in only** (`walkIn: false`). The stacked washer fills it, so you stand at its bifold rather than step inside.
 
+New values added for doors and interaction (stage 2):
+
+- **Reach:** you can use things up to 2.0 m from your eyes, aiming with the crosshair. The key is E.
+- **Door speed:** a door swings from closed to fully open in 0.9 s.
+- **Front door:** stays open 4 s after it finishes opening, then its closer shuts it over 5 s (the notes say "slowly"). It locks again when shut, and its panel lights go red; open, they go green. You open it from either side without a code (you are let in as the tenant).
+- **Doors and you:** a door stops if it would swing into you, and carries on once you step back.
+- **Leaf fit:** 3 mm clearance at each jamb. Bottom gap 1 cm (the bedroom door's 2 cm undercut is from the notes). Lever handles at 1.0 m on both faces.
+- **Bifold cupboards:** two leaves each, folding out into the hall up to 80°.
+- **Curtains:**
+  - One press of E draws both halves together (open or closed) in the 3 s from the notes.
+  - Pleats every 0.12 m.
+  - They start open in state A and closed in states B–F, as the notes say.
+- **Prompt wording:** "Open door", "Close door", "Open front door", "Open closet", "Open laundry cupboard", "Open coat cupboard", "Open curtains", "Close curtains".
+- **Later types:** prompts for the other interactive types (cupboards, drawers, switches, taps, kettle, record player and more) are in `house.json` under `interaction.types`, ready for their stages.
+
 ---
 
 ## Clashes in the notes (resolved)

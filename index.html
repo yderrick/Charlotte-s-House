@@ -10,7 +10,9 @@
       #hud { position: fixed; top: 12px; left: 12px; padding: 8px 12px; background: rgba(20, 20, 22, 0.62); color: #f2f2f2; border-radius: 6px; pointer-events: none; }
       #hud .room { font-size: 16px; font-weight: 600; }
       #hud .meta { font-size: 11px; opacity: 0.75; margin-top: 2px; font-variant-numeric: tabular-nums; }
-      #crosshair { position: fixed; left: 50%; top: 50%; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 50%; background: rgba(0, 0, 0, 0.45); pointer-events: none; }
+      #crosshair { position: fixed; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: rgba(255, 255, 255, 0.9); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55); pointer-events: none; }
+      #prompt { position: fixed; left: 50%; top: calc(50% + 22px); transform: translateX(-50%); padding: 4px 10px; background: rgba(20, 20, 22, 0.7); color: #f4f4f4; font-size: 14px; border-radius: 4px; white-space: nowrap; pointer-events: none; }
+      #prompt[hidden] { display: none; }
       #overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(30, 30, 34, 0.35); cursor: pointer; }
       #overlay[hidden] { display: none; }
       #overlay .card { background: rgba(20, 20, 22, 0.8); color: #f2f2f2; padding: 18px 24px; border-radius: 8px; text-align: center; line-height: 1.5; }
@@ -21,11 +23,12 @@
   <body>
     <div id="app"></div>
     <div id="crosshair"></div>
+    <div id="prompt" hidden></div>
     <div id="hud"></div>
     <div id="overlay">
       <div class="card">
         <b>Click to walk</b><br />
-        <span>Mouse to look · W A S D to walk · Shift to walk faster · Esc to release the mouse</span>
+        <span>Mouse to look · W A S D to walk · Shift to walk faster · E to use doors and curtains · Esc to release the mouse</span>
       </div>
     </div>
     <script type="module" src="/src/main.js"></script>

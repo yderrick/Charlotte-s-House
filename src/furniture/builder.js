@@ -11,6 +11,10 @@ export function buildFurniture(house, state) {
   const group = new THREE.Group();
   group.name = `furniture:${state}`;
   const boxes = furnitureBoxes(house.floors[0], state);
-  for (const b of boxes) group.add(addOutline(boxMesh(b, b.solid ? SOLID : PROP), EDGE));
+  for (const b of boxes) {
+    const mesh = addOutline(boxMesh(b, b.solid ? SOLID : PROP), EDGE);
+    if (b.interactive) mesh.userData.interactId = b.item; // picked up by the interaction system once its type has a handler
+    group.add(mesh);
+  }
   return { group, boxes };
 }

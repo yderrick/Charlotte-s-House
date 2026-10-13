@@ -17,7 +17,7 @@ export function furnitureBoxes(floor, state) {
     const p = placement(item, state);
     if (!p || !p.x || !p.y || !p.z) continue;
     const solid = SOLID_TYPES.has(p.type);
-    const add = (suffix, x, y, z) => boxes.push({ id: suffix ? `${p.id}:${suffix}` : p.id, item: p.id, type: p.type, role: "furniture", solid, x: pad(x), y: pad(y), z: pad(z), collide: true });
+    const add = (suffix, x, y, z) => boxes.push({ id: suffix ? `${p.id}:${suffix}` : p.id, item: p.id, type: p.type, role: "furniture", solid, interactive: !!p.interact, x: pad(x), y: pad(y), z: pad(z), collide: true });
 
     if (p.base && p.overhang) {
       // Island: cupboard base below the worktop, worktop over base and overhang

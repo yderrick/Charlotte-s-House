@@ -1,7 +1,8 @@
 // 2D collision for a walking player: a circle in plan space against axis-aligned
-// rectangles. Only boxes that overlap the body's height band block movement, so
-// things under the step height (paper, a 2 cm threshold) or above the head (door
-// headers, the top shelf) do not. Pure: no Three.js.
+// rectangles and thick line segments (door leaves, which turn on their hinges).
+// Only boxes that overlap the body's height band block movement, so things under
+// the step height (paper, a 2 cm threshold) or above the head (door headers, the
+// top shelf) do not. Pure: no Three.js.
 
 const MAX_STEP = 0.04; // metres per sub-step; well under the thinnest wall (0.1 m)
 
@@ -11,11 +12,15 @@ export function buildColliders(boxes, { stepHeight, headHeight }) {
     .map((b) => ({ id: b.id, x0: b.x[0], x1: b.x[1], y0: b.y[0], y1: b.y[1] }));
 }
 
-// Push a point out of every rectangle it is within `radius` of.
+// Push a point out of every collider it is within `radius` of.
 export function resolve(pos, radius, rects) {
   for (let iter = 0; iter < 4; iter++) {
     let moved = false;
     for (const r of rects) {
+      if (r.kind === "seg") {
+        if (pushOutOfSegment(pos, radius, r)) moved = true;
+        continue;
+      }
       if (pos.x < r.x0 - radius || pos.x > r.x1 + radius || pos.y < r.y0 - radius || pos.y > r.y1 + radius) continue;
       const cx = Math.min(Math.max(pos.x, r.x0), r.x1);
       const cy = Math.min(Math.max(pos.y, r.y0), r.y1);
@@ -42,6 +47,30 @@ export function resolve(pos, radius, rects) {
     if (!moved) break;
   }
   return pos;
+}
+
+// Segment collider { ax, ay, bx, by, half }: a line with `half` thickness either side.
+function pushOutOfSegment(pos, radius, s) {
+  const vx = s.bx - s.ax, vy = s.by - s.ay;
+  const len2 = vx * vx + vy * vy;
+  if (len2 < 1e-12) return false;
+  const t = Math.max(0, Math.min(1, ((pos.x - s.ax) * vx + (pos.y - s.ay) * vy) / len2));
+  const cx = s.ax + vx * t, cy = s.ay + vy * t;
+  let dx = pos.x - cx, dy = pos.y - cy;
+  const min = radius + s.half;
+  const d2 = dx * dx + dy * dy;
+  if (d2 >= min * min) return false;
+  let d = Math.sqrt(d2);
+  if (d < 1e-9) {
+    // Exactly on the line: leave along its normal.
+    const len = Math.sqrt(len2);
+    dx = -vy / len;
+    dy = vx / len;
+    d = 1;
+  }
+  pos.x = cx + (dx / d) * min;
+  pos.y = cy + (dy / d) * min;
+  return true;
 }
 
 // Move by (dx, dy) in small steps so fast movement cannot tunnel through a wall.
