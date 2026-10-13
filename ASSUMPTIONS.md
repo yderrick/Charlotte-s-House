@@ -264,3 +264,29 @@ New values added for indoor lights (stage 4):
 
 - **State F** follows the notes' "Proposed reading": boxes stay, fridge off, desk lamp off, nobody home.
 - **Phone:** on the bedside table in A–C, on the desk in D–E.
+
+## Art pass (stage 7)
+
+All values in `house.json` → `art`, `materials.*.texture`, `outdoors.look` and `timeOfDay.frost`. All `"basis": "assumed"` unless noted.
+
+- **Textures are drawn in code, not downloaded.** Poly Haven, ambientCG and Kenney were blocked by this environment's network policy, so each material gets a texture recipe (`materials.*.texture`): a pattern, its real size in metres, how strong the detail is, and a bump strength. The material's colour from the notes stays the average colour. `npm run fetch:textures` swaps in Poly Haven CC0 photos later (see `CREDITS.md`).
+  - Painted walls and ceilings: a very faint plaster (2% tone, light bump). The notes say flat white paint.
+  - Grey wood-look vinyl: 1.22 × 0.18 m planks with grain, 9% tone variation between planks.
+  - Bathroom tile: 60 × 30 cm grey porcelain with 4 mm grout (`#8C8E90`).
+  - Corridor: 50 cm charcoal carpet tiles, laid quarter-turned.
+  - Counter: grey stone-look speckle. Stainless: brushed streaks. Fabrics: a fine weave (1–1.2 cm repeat) that averages out at a distance.
+  - Her handwritten pages: lines of pen across A4, drawn on a canvas.
+- **Small parts the notes don't name** (screens, cables, rubber feet, record vinyl, tape) use the dark helper colours in `art.helperColours`.
+- **Her clothes:** the notes say "few, dark, the same few things". They are five dark greys and blue-greys (`art.garmentTones`), lifted from near-black so they read as cloth, about one garment per 10 cm of rail.
+- **The worn couch cushion** at Michael's end (x = 4.1, from the notes) is a little paler and flatter (`wornColour`).
+- **Furniture models are built in code** from boxes, cylinders and spheres inside each item's footprint. Nothing comes from a model library. There are no NPC models (the flat has no people).
+- **No decoration added.** The brief asked for pictures, rugs, plants and items on shelves "from the notes". The notes say the opposite: bare walls, no photographs, no art, no plants, no rug, no clock, no fridge magnets. Only the items already in `house.json` are drawn (records, turntable, game cases, pill strip, mug, boxes, pages and so on).
+- **The town outside** (`outdoors.look`):
+  - A 110 m street grid lined up with the main street, with lots of 15 × 30 m and houses 6–9 m tall in the notes' residential sector (bearings 60–230°, 90 m to 3 km). Thinned beyond 1.2 km, capped at 9,000 houses.
+  - Roof and wall palettes are greys and browns ("low pitched and flat, grey and dark brown" in the notes).
+  - Trees line the main street and stand in the nearer yards. Their leaves are on from 15 May to 25 Oct.
+  - At night, 20% of windows are lit from dusk to 23:30, and street lights glow every 35 m.
+  - The church, tall buildings, lake, hills and mast come from `outdoors.items`.
+  - Light distance fog takes its colour from the sky's horizon (`art.fog`).
+- **Seasons outside:** snow on the ground and roofs, and a frozen harbour, on the dates in `timeOfDay.season`.
+- **Frost on the glass:** feathery frost grows up to 45 cm from the bottom corners of each pane on December–February nights, at up to 65% opacity. It has a faint glow of its own (`glow` 0.12), so it still reads in a dark room. The notes say frost at the corners of the glass below −15 °C.

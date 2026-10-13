@@ -3,6 +3,10 @@ import * as THREE from "three";
 import house from "../house.json";
 import { buildHouse } from "./house/builder.js";
 import { buildFurniture } from "./furniture/builder.js";
+import { furnitureBoxes } from "./furniture/layout.js";
+import { createMaterials } from "./art/materials.js";
+import { buildFrost } from "./art/frost.js";
+import { buildOutdoors } from "./outdoors/city.js";
 import { addFlatLighting } from "./lighting/flat.js";
 import { addDaylight, enableShadows } from "./lighting/daylight.js";
 import { createClock, parseHHMM } from "./time/clock.js";
@@ -50,16 +54,22 @@ document.getElementById("app").appendChild(renderer.domElement);
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.05, 6000);
 
-const shell = buildHouse(house);
-const furniture = buildFurniture(house, state);
+const materials = createMaterials(house);
+const shell = buildHouse(house, materials);
+const furniture = buildFurniture(house, state, materials);
 const doors = createDoorSystem(house);
-const doorMeshes = buildDoorMeshes(house, doors);
+const doorMeshes = buildDoorMeshes(house, doors, materials);
 const curtains = createCurtainSystem(house, state);
-const curtainMeshes = curtains ? buildCurtainMeshes(curtains) : null;
+const curtainMeshes = curtains ? buildCurtainMeshes(curtains, materials) : null;
 scene.add(shell.group, furniture.group, doorMeshes.group);
 if (curtainMeshes) scene.add(curtainMeshes.group);
 const sky = buildSky(house);
 scene.add(sky.group);
+const outdoors = buildOutdoors(house);
+const frost = buildFrost(house, shell.boxes.filter((b) => b.role === "glass"));
+scene.add(outdoors.group, frost.group);
+const fogCfg = house.art?.fog;
+if (fogCfg && !flatLight) scene.fog = new THREE.FogExp2(0xffffff, fogCfg.density);
 const roomMask = createRoomMask(house);
 const lightState = createLightState(house, state, { date: clock.state.date, hhmm: clock.hhmm() });
 const fixtures = buildFixtures(house, state, lightState, roomMask.graph);
@@ -70,13 +80,12 @@ if (flatLight) {
   renderer.toneMapping = THREE.NoToneMapping;
 } else {
   for (const g of [shell.group, furniture.group, doorMeshes.group, curtainMeshes?.group]) if (g) enableShadows(g);
-  shell.group.getObjectByName("ground").castShadow = false;
 }
 roomMask.patchAll(scene); // indoor lights stop at walls (see lighting/roomMask.js)
 roomMask.tagLights(scene);
 
 const settings = house.player;
-const staticColliders = buildColliders([...shell.boxes, ...furniture.boxes], settings);
+const staticColliders = buildColliders([...shell.boxes, ...furnitureBoxes(house.floors[0], state)], settings);
 const getColliders = () => [...staticColliders, ...doors.segments(), ...(curtains ? curtains.colliders() : [])];
 const player = createPlayer({ camera, dom: renderer.domElement, settings, getColliders });
 const hud = createHud(house, state);
@@ -128,7 +137,9 @@ function adaptExposure(dt) {
 }
 
 let env = null;
+let elapsed = 0; // real seconds since start (for the mast's blinking lights)
 function step(dt, render = true) {
+  elapsed += dt;
   clock.tick(dt);
   env = environmentAt(house, clock.utcMs());
   const somethingMoving = doors.moving() || curtains?.moving();
@@ -138,6 +149,9 @@ function step(dt, render = true) {
   doorMeshes.update();
   curtainMeshes?.update();
   sky.update(env, camera.position);
+  outdoors.update(env, clock.state.date, clock.state.minutes, elapsed);
+  frost.update(env, clock.state.date);
+  if (scene.fog) scene.fog.color.set(env.sky[fogCfg.colourFromSky ?? "horizon"]);
   daylight?.update(env, somethingMoving);
   if (fixtures.update(lightState.levels(clock.state.date, clock.state.minutes)) || somethingMoving) fixtures.markShadows();
   interaction.update();
@@ -147,6 +161,10 @@ function step(dt, render = true) {
   timebar.update(env);
   if (render) renderer.render(scene, camera);
 }
+
+// Compile every material's shader now, behind the "click to walk" overlay,
+// rather than with a hitch the first time each one comes into view.
+renderer.compile(scene, camera);
 
 const timer = new THREE.Timer();
 function frame(time) {
@@ -160,4 +178,4 @@ requestAnimationFrame(frame);
 // .doors.toggle(id), .interaction.activate(), .step(dt, render) to advance without waiting for frames,
 // .clock.setMinutes(m), .env() for the current sun, moon and light values.
 // .lights (switch state), .fixtures, .exposure() for the eye adaptation.
-window.__house = { player, doors, curtains, interaction, clock, lights: lightState, fixtures, scene, camera, renderer, state, step, render: () => step(0), env: () => env, exposure: () => exposure };
+window.__house = { outdoors, materials, player, doors, curtains, interaction, clock, lights: lightState, fixtures, scene, camera, renderer, state, step, render: () => step(0), env: () => env, exposure: () => exposure };

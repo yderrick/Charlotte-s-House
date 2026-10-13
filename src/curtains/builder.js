@@ -1,29 +1,32 @@
-// Curtains as pleated grey fabric hanging from the ceiling track. The pleat
-// count is fixed, so drawing a half open squeezes its folds into a stack.
+// Curtains as pleated fabric (the curtain's material in house.json) hanging
+// from the ceiling track. The pleat count is fixed, so drawing a half open
+// squeezes its folds into a stack.
 import * as THREE from "three";
 import { planToThree } from "../scene/boxes.js";
 
-const FABRIC = new THREE.MeshLambertMaterial({ color: 0x8a8a8a, side: THREE.DoubleSide });
 const FOLD_DEPTH = { closed: 0.025, open: 0.06 }; // fold amplitude in metres
 
-function pleatedGeometry(folds, height) {
+function pleatedGeometry(folds, height, width) {
   const geo = new THREE.PlaneGeometry(1, height, Math.max(8, folds * 6), 1);
-  const pos = geo.attributes.position;
+  const pos = geo.attributes.position, uv = geo.attributes.uv;
   for (let i = 0; i < pos.count; i++) {
     const u = pos.getX(i) + 0.5; // 0..1 across the half
     pos.setZ(i, Math.sin(u * folds * Math.PI * 2));
+    uv.setXY(i, uv.getX(i) * width, uv.getY(i) * height); // UVs in metres of fabric
   }
   geo.computeVertexNormals();
   return geo;
 }
 
-export function buildCurtainMeshes(curtains) {
+export function buildCurtainMeshes(curtains, materials) {
   const group = new THREE.Group();
   group.name = "curtains";
+  const FABRIC = materials[curtains.def.material].clone();
+  FABRIC.side = THREE.DoubleSide;
   const { track, bottom, pleatSpacing = 0.12 } = curtains.def;
   const height = track.z - bottom;
   const meshes = curtains.halves.map((h) => {
-    const mesh = new THREE.Mesh(pleatedGeometry(Math.round(h.closedWidth / pleatSpacing), height), FABRIC);
+    const mesh = new THREE.Mesh(pleatedGeometry(Math.round(h.closedWidth / pleatSpacing), height, h.closedWidth), FABRIC);
     mesh.name = h.id;
     mesh.userData.interactId = curtains.def.id;
     group.add(mesh);

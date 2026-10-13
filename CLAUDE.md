@@ -51,6 +51,12 @@ A walkable, first-person 3D version of Charlotte's apartment (floor 21, Thunder 
   - Each light carries its room in its `distance` field (1000 + room index). Don't set `distance` on indoor lights for anything else.
   - The same rule in JS is `lightReach()` in `src/lighting/rooms.js`. Shadows are for looks only, and limited to the lights in `indoorLighting.shadows.lights`.
 
+- **Materials and textures:**
+  - Every surface uses a `MeshLambertMaterial` from `src/art/materials.js`, one per `house.materials` entry. Keep them Lambert: the room mask only patches Lambert.
+  - A material's `texture` recipe gives the pattern and its real size in metres. UVs are in metres, and the material's colour from the notes stays the average colour.
+  - Colours for small unnamed parts, garments and the town live in `house.art` and `outdoors.look`, not in code.
+  - Real CC0 textures, once fetched, are listed in `public/textures/manifest.json` and swapped in at start-up.
+
 ## Module layout
 
 ```
@@ -61,14 +67,15 @@ src/
   data/geometry.js     pure plan-space helpers (walls, openings, placement by state, roomAt, sun) — shared with tools/
   scene/boxes.js       plan box -> Three.js mesh (three.x = x, three.y = z, three.z = -y), outlines
   house/layout.js      pure: floors, ceilings, wall pieces, headers, thresholds, glazing, colliders as boxes
-  house/builder.js     Three.js meshes for the shell (grey materials) + ground plane
+  house/builder.js     Three.js shell: each wall face takes the finish of the room it faces (facade outside); batched per material
   furniture/layout.js  pure: furniture boxes for a story state (island base/top, sink cut-out, seat backs, headboard)
-  furniture/builder.js Three.js meshes for furniture (grey, outlined)
+  furniture/builder.js Three.js furniture for a state: places each model in its footprint; interactive items keep own meshes, the rest batched
+  furniture/models.js  low-poly model per furniture type, built in a local frame (x across, y up, z depth, front at -z) to fill W x H x D
   player/collision.js  pure: circle-vs-box collision in plan space, sub-stepped moves
   player/controls.js   pointer lock, mouse look, WASD + Shift, camera at eye height (getColliders() each frame)
   doors/kinematics.js  pure: hinge frame, leaf placement and collision segments for an angle (hinged and bifold)
   doors/doors.js       pure: door state (angle -> target), stops against the player, self-closing + lock
-  doors/builder.js     Three.js leaves with handles; front door status lights (red locked / green open)
+  doors/builder.js     Three.js leaves (faceInside / faceOutside materials) with handles; front door status lights (red locked / green open)
   curtains/curtains.js pure: curtain halves, openness 0..1, extents and colliders
   curtains/builder.js  Three.js pleated curtain halves on the ceiling track
   interact/registry.js pure: collect every interact { type, action } from house.json; prompt lookup
@@ -87,10 +94,14 @@ src/
   lighting/flat.js     stage 1 flat lighting, still available with ?light=flat for checking geometry
   ui/hud.js            room name, position, compass heading, interaction prompt
   ui/timebar.js        clock, date, time slider, pause / speed buttons, where the sun and moon are
-  outdoors/            (later) street, roofs, church, lake sliver, hills, mast, city lights
-  audio/               (stage 6) positional sounds, schedules, triggers
-  states/              (stage 7) story state A–F switch
-tools/                 Node scripts (no dependencies): check-house.mjs, walk-test.mjs, sun-test.mjs, lights-test.mjs, floorplan.mjs, lib.mjs
+  art/textures.js      textures drawn in code from materials.*.texture recipes (detail map + bump map, real size in metres)
+  art/materials.js     one MeshLambertMaterial per house.json material (Lambert for the room mask); swaps in fetched CC0 textures
+  art/batch.js         merges parts into one mesh per material (UVs in metres; world-UV boxes for the shell)
+  art/frost.js         frost on the glass on cold winter nights (timeOfDay.frost)
+  outdoors/city.js     the town from outdoors.items + outdoors.look: road grid, instanced houses and trees, church, towers, lake, hills, mast, night windows, street lights, snow
+  audio/               (on hold) positional sounds, schedules, triggers
+  states/              (stage 8) story state A–F switch
+tools/                 Node scripts (no dependencies): check-house.mjs, walk-test.mjs, sun-test.mjs, lights-test.mjs, floorplan.mjs, fetch-textures.mjs, lib.mjs
 ```
 
 ## Stages
@@ -102,9 +113,10 @@ tools/                 Node scripts (no dependencies): check-house.mjs, walk-tes
 | 2 | Doors and interaction: crosshair, look-at prompts, hinged and bifold leaves that swing, front door self-closes and shows red/green, door collision, curtains | Every door opens and closes; every room is reachable by opening doors |
 | 3 | Time of day: game clock and controls, sun and moon from latitude and compass, sky through dawn/day/sunset/dusk/night, stars, shadowed sunlight through the windows, dark windowless rooms | Standing in a room and scrubbing the time slider, the window light moves and changes colour |
 | 4 | Indoor lights: every fixture with a visible fitting, switches by the doors, warm bulbs, light that stops at walls and spills through open doors, scheduled lights, a few chosen shadows | At night you can walk through the flat switching lights on and off, and each room looks lit or dark |
-| 5 | Materials and colours from `house.json`; nicer furniture shapes inside the same footprints; cupboard and drawer handlers; outdoor surroundings, seasons, frost; preset picker | Every item looks like what it is, at the size in the plan |
-| 6 | Audio: positional sounds, schedules, triggers (buzz, kettle, record, fan) | Each sound plays from its place at its time |
-| 7 | Story states A–F and interactions (fridge, cabinets, kettle, record, pages, lamp) | Switching state moves and swaps everything listed in section 11 of the notes |
+| 5 | Cupboard and drawer handlers; lighting preset picker | Every cupboard and drawer opens; presets can be picked in game |
+| 6 | Audio: positional sounds, schedules, triggers (buzz, kettle, record, fan). On hold: sound is being ignored for now | Each sound plays from its place at its time |
+| 7 | Art pass: textures for every material, low-poly furniture inside the same footprints, the town outside, seasons, frost, `CREDITS.md` | The house looks like the place in the notes |
+| 8 | Story states A–F and interactions (fridge, cabinets, kettle, record, pages, lamp) | Switching state moves and swaps everything listed in section 11 of the notes |
 
 ## Commands
 
@@ -117,6 +129,7 @@ npm run test:walk   # walk test with the real collision and door code: rooms rea
 npm run test:sun    # sun test: rays from every floor spot toward the sun through the real walls, on four dates, hourly
 npm run test:lights # light test: switches by doors, every light switchable, light stops at walls and spills through open doors, schedules
 npm run floorplan   # regenerate floorplan.svg from house.json (optional arg: state letter)
+npm run fetch:textures  # optional: download CC0 textures from Poly Haven into public/textures/ (needs network access)
 ```
 
 ## Progress
@@ -290,3 +303,63 @@ Stage numbering again follows your request: indoor lights are stage 4, and mater
   - Each light's room is stored in its Three.js `distance` value (see conventions). The desk lamp's shadow camera therefore uses a 1000 m far plane, which costs a little shadow precision.
   - The bundle is about 634 kB (167 kB gzipped).
 
+### Stage 7: Art pass (done, 13 Oct 2026)
+
+Stage numbering follows your request: this is stage 7. Sound is on hold, and story states move to stage 8.
+
+- **Textures, drawn in code.** Poly Haven, ambientCG and Kenney are blocked by this environment's network policy, so nothing could be downloaded.
+  - Every material in `house.json` now has a texture recipe (`materials.*.texture`), and `src/art/textures.js` draws it at its real size, with a bump map.
+  - Recipes: faint plaster on the white walls and ceilings; 1.22 m grey wood-look vinyl planks; 60 × 30 cm grey bathroom tiles with grout; quarter-turned charcoal carpet tiles in the corridor; speckled grey counter; brushed stainless; fine fabric weaves on the couch, curtains, bedding, towels and stools; cardboard on the boxes; slotted grilles; handwriting on her pages.
+  - Each material keeps its colour from the notes as its average colour.
+  - `npm run fetch:textures` will download Poly Haven CC0 textures (picked from each recipe's `search` words) on a machine with access. It writes `public/textures/manifest.json` and lists the files in `CREDITS.md`. The game swaps them in at start-up and tints each one to the notes' colour.
+- **Shell:** each wall face takes the finish of the room it faces: white paint in the flat, the corridor's wall finish in the corridor, the facade outside. Floors take each room's floor material, ceilings their ceiling, and slab edges are concrete. Door leaves are white inside; the front door is charcoal on the corridor side. Handles are stainless. The grey outlines are gone.
+- **Furniture:** every item is a low-poly model built in code (`src/furniture/models.js`), filling its footprint from `house.json`. Some examples:
+  - Kitchen: cabinet doors and drawers with handles, the worktop cut around the sink, the range with a black glass top and knobs, the microwave with its window, a kettle and a drying rack.
+  - Living area: the couch with arms, loose back cushions and the worn cushion at Michael's end; bar stools; the TV on its pedestal stand with the console, controllers and game cases; the shelf with the turntable, speakers and record sleeves (one new sleeve in state A).
+  - Bedroom: the bed with headboard, sheets, duvet and pillows; the desk, task chair, monitor, laptop, keyboard and phone.
+  - Bathroom: the bath with the shower curtain, the toilet, the vanity and mirror cabinet, the towel rail and the extractor.
+  - Walk-in closet: her few dark clothes on the rail, bare hangers in states C–F, his box on the shelf.
+  - Elsewhere: pill strip, mug, open boxes, convector heaters along the glass.
+  - Collision still uses the plain footprint boxes, so walking is unchanged.
+- **Not added, on purpose:**
+  - No NPC models: the flat has no people (rule 8).
+  - No pictures, rugs, plants or shelf ornaments. The notes say bare walls, no photographs, art, plants, rug, clock or magnets, and rule 7 forbids extras. Only items already in `house.json` are drawn.
+- **The view outside** (`src/outdoors/city.js`, from `outdoors.items` and `outdoors.look`):
+  - A 110 m road grid lined up with the main street, with tree-lined avenues.
+  - About 8,500 low houses with pitched or flat roofs on their lots, in the notes' sector and thinning with distance, plus about 900 trees.
+  - Parking lots, the taller buildings with windows, the church with its tower and spire, the lake, the hills on the horizon, and the mast with blinking red lights.
+  - At night, 20% of windows are lit (dusk to 23:30) and street lights glow along the roads.
+  - Distance fog takes its colour from the sky's horizon.
+- **Seasons:** snow on the ground and roofs, and a frozen harbour, on the dates in `timeOfDay.season`. Tree leaves are on from mid-May to late October.
+- **Frost:** on December–February nights, feathery frost grows from the bottom corners of each pane (`timeOfDay.frost`).
+- **Smoothness:** all shaders are compiled at start-up, behind the "click to walk" overlay, so turning to look at something new doesn't stutter.
+- **How to run:** `npm install`, then `npm run dev`, and open http://localhost:5173/. Try:
+  - `?time=23:30` for night;
+  - `?date=2026-01-15&time=12:30` for snow;
+  - `?date=2026-01-15&time=23:00` for frost;
+  - `?state=D` for Phase 6.
+- **Verified:**
+  - `npm run check`: 0 errors, 0 warnings. `npm run test:walk`, `npm run test:sun` and `npm run test:lights` all pass.
+  - Browser, headless Chromium:
+    - Screenshots by day and night of the hall, kitchen, living area, couch, TV wall, bedroom, bathroom, walk-in, corridor and the view, in June and January, plus state D.
+    - With the real E key, all 6 doors open and close, the curtains draw, all switch controls and the desk lamp work, and a door still stops against the player.
+    - No console errors.
+- **Performance** (measured in headless Chromium, which renders on the CPU, so compare counts rather than frame times):
+  - Draw calls are slightly lower than in stage 4, because static parts are batched: hall view 194 (was 217), main room 105 (126), bedroom 69 (89).
+  - The heaviest frame, when a door moves and every shadow re-renders, is 1,214 calls (was 1,180).
+  - Triangles went from about 5,000 to about 220,000, almost all in the instanced town. That is light for any desktop or laptop GPU.
+  - Texture memory is about 70 MB: around 50 canvas textures at 512 px, with mipmaps.
+  - Start-up spends about 1.2 s drawing textures, then compiles the shaders.
+  - The bundle is about 714 kB (195 kB gzipped).
+- **If it runs slowly, simplify in this order:**
+  1. `?shadows=low`.
+  2. Lower `art.textureResolution` to 256, which saves about 50 MB of texture memory and most of the start-up drawing.
+  3. Lower `outdoors.look.maxHouses` (2,000 still fills the near view).
+  4. Set `art.fog.density` to 0 and drop the bump maps (`texture.bump`), which saves per-pixel work on weak GPUs.
+- **Known problems:**
+  - All textures are generated rather than photographed; they read as the right material but plainer than real photos. Allow api.polyhaven.com and dl.polyhaven.org, then run `npm run fetch:textures`.
+  - Models are deliberately simple (boxes, cylinders, spheres). Up close, pillows, clothes and the toilet are blocky.
+  - Mirrors and glass don't reflect; the mirror is a pale emissive grey.
+  - The town's houses all face the same way and repeat their few colours; the road grid is perfectly regular.
+  - Under ACES tone mapping, her dark clothes stay close to black next to white walls.
+  - In headless tests, the first view of a new direction can take several seconds in software rendering. This is shader and texture upload on the CPU, not the game.

@@ -12,7 +12,8 @@
     "test:walk": "node tools/walk-test.mjs",
     "floorplan": "node tools/floorplan.mjs",
     "test:sun": "node tools/sun-test.mjs",
-    "test:lights": "node tools/lights-test.mjs"
+    "test:lights": "node tools/lights-test.mjs",
+    "fetch:textures": "node tools/fetch-textures.mjs"
   },
   "dependencies": {
     "three": "0.185.1"

@@ -1,32 +1,38 @@
-// Door leaves as grey panels that follow the door system's angles, plus the
-// front door's status lights (red locked, green open).
+// Door leaves that follow the door system's angles, plus the front door's
+// status lights (red locked, green open). Each face of a leaf takes the
+// material house.json gives for that side (faceInside / faceOutside).
 import * as THREE from "three";
 import { leafPlacements } from "./kinematics.js";
-import { addOutline, planToThree } from "../scene/boxes.js";
+import { planToThree } from "../scene/boxes.js";
 
-const LEAF = new THREE.MeshLambertMaterial({ color: 0xe6e6e6 });
-const HANDLE = new THREE.MeshLambertMaterial({ color: 0x555555 });
-const EDGE = new THREE.LineBasicMaterial({ color: 0x4a4a4a });
 const unitBox = new THREE.BoxGeometry(1, 1, 1);
 const HANDLE_SIZE = { length: 0.12, height: 0.02, depth: 0.03, inset: 0.07 }; // lever handle
 
-export function buildDoorMeshes(house, doorSystem) {
+export function buildDoorMeshes(house, doorSystem, materials) {
   const group = new THREE.Group();
   group.name = "doors";
   const handleHeight = house.doorMotion?.handleHeight ?? 1.0;
   const items = [];
 
+  const HANDLE = materials.stainless;
   for (const d of doorSystem.doors) {
     const { frame } = d;
+    const def = house.floors[0].doors.find((x) => x.id === d.id) ?? {};
+    const inside = materials[def.faceInside ?? "door_white"], outside = materials[def.faceOutside ?? def.faceInside ?? "door_white"];
+    // A leaf's local +z face looks to the right of its direction; when closed that is the swing room's side or not.
+    const plusZIntoSwing = frame.along[1] * frame.n[0] - frame.along[0] * frame.n[1] > 0;
+    const swingIsInside = house.floors[0].rooms.find((r) => r.id === def.swingsInto)?.inUnit !== false; // faceInside looks into the flat
+    const faceIn = swingIsInside ? inside : outside, faceOut = swingIsInside ? outside : inside;
+    const edge = inside;
+    const leafMats = [edge, edge, edge, edge, plusZIntoSwing ? faceIn : faceOut, plusZIntoSwing ? faceOut : faceIn];
     const zc = (frame.z[0] + frame.z[1]) / 2, h = frame.z[1] - frame.z[0];
     const leaves = leafPlacements(frame, d.angle).map((p, i) => {
       const leafGroup = new THREE.Group();
       leafGroup.name = `${d.id}:leaf${i}`;
       leafGroup.userData.interactId = d.id;
-      const panel = new THREE.Mesh(unitBox, LEAF);
+      const panel = new THREE.Mesh(unitBox, leafMats);
       panel.scale.set(p.length, h, p.thickness);
       panel.userData.interactId = d.id;
-      addOutline(panel, EDGE);
       leafGroup.add(panel);
       // Handles near the free end of the first leaf (the fold, on a bifold), both faces.
       if (i === 0) {
