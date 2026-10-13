@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Charlotte's House</title>
+    <style>
+      html, body { margin: 0; height: 100%; overflow: hidden; background: #c8ccd0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+      #app, #app canvas { display: block; width: 100%; height: 100%; }
+      #hud { position: fixed; top: 12px; left: 12px; padding: 8px 12px; background: rgba(20, 20, 22, 0.62); color: #f2f2f2; border-radius: 6px; pointer-events: none; }
+      #hud .room { font-size: 16px; font-weight: 600; }
+      #hud .meta { font-size: 11px; opacity: 0.75; margin-top: 2px; font-variant-numeric: tabular-nums; }
+      #crosshair { position: fixed; left: 50%; top: 50%; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 50%; background: rgba(0, 0, 0, 0.45); pointer-events: none; }
+      #overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(30, 30, 34, 0.35); cursor: pointer; }
+      #overlay[hidden] { display: none; }
+      #overlay .card { background: rgba(20, 20, 22, 0.8); color: #f2f2f2; padding: 18px 24px; border-radius: 8px; text-align: center; line-height: 1.5; }
+      #overlay .card b { font-size: 17px; }
+      #overlay .card span { font-size: 13px; opacity: 0.8; }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="crosshair"></div>
+    <div id="hud"></div>
+    <div id="overlay">
+      <div class="card">
+        <b>Click to walk</b><br />
+        <span>Mouse to look · W A S D to walk · Shift to walk faster · Esc to release the mouse</span>
+      </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

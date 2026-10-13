@@ -6,28 +6,39 @@ In `house.json`, every item has a `basis` field: `notes`, `assumed`, or `notes+a
 
 ---
 
-## Review these first
+## Decisions on the issues raised in stage 0
 
-1. **The desk in the window corner (states D–F) is mirrored from the prose.** Section 7 says "the window is on her right as she sits" and "the couch is behind her, to her left". With the section 14 coordinates (desk against the right-hand wall x = 6.5, facing it), the window is on her **left** and the couch is behind her to her **right**. I kept the coordinates. If the prose is right, the desk has to go on the left-hand wall, which is the kitchen.
-2. **That desk crosses the curtain line.** The desk runs to y = 9.8 and the curtain track is at y = 9.75, so the closed curtain would cut 5 cm into the desk. I kept y 8.4–9.8 as written. Suggested fix: y 8.3–9.7.
-3. **Eye height 1.6 m vs "Charlotte is small".** An eye height of 1.6 m means someone about 1.72 m tall. For a small woman (1.55–1.60 m), the eye height would be 1.45–1.50 m. I kept 1.6 and set her NPC height to 1.72 to match.
-4. **The sun runs late on the clock.** Thunder Bay uses Eastern time but sits far west, so in summer the clock is about two hours ahead of the sun. On 18 Jun 2026: sunrise 05:56, low sun from the left 07:00–10:00 (as the notes want), sun squarely on the glass about 12:25, gone from the glass about 15:45, sunset 22:01. So the get-together's "city lights through the glass" only work after about 23:00. I moved that lighting preset to 23:00.
-5. **The bathroom prose doesn't match the coordinates.** Coming in from the hall (facing +x), the bath is on your right, the vanity on your **left** and the toilet **straight ahead**. The notes say "toilet on the right-hand wall" and "vanity facing you as you come in". I kept the coordinates.
-6. **"A narrow door in the left-hand wall" of the bedroom (walk-in closet).** The coordinates put it in the wall x = 3.0. That is the plan's left, but it is on your **right** as you walk into the bedroom. I kept the coordinates.
-7. **I added a light in the walk-in closet** (`L_closet`, 400 lm). It is not in the notes' light list, and without it the closet would be pitch black. Delete it if the list is meant to be complete.
-8. **NPC routines and visit times are all invented.** See the NPC section below.
+These were open after planning and are now settled with the values below.
+
+1. **Window-corner desk (states D–F):** it stays against the right-hand wall (x = 6.5), facing it. The prose direction is corrected to match. As she sits, the window is on her **left** and the couch is behind her to her **right**. Putting the desk on the other side would mean the left-hand wall, which is the kitchen.
+2. **That desk now clears the curtains.** It moved 0.1 m toward the room, to y 8.3–9.7 (was 8.4–9.8). Its chair, monitor, keyboard, pill strip, phone, mug and printouts moved with it.
+3. **Eye height is 1.65 m,** as you asked for the walk-through. The camera is a generic visitor, not Charlotte, so "Charlotte is small" no longer constrains it.
+4. **The sun timing stays as computed.** The Phase 1 night preset is at 23:00 (sunset on 17 Jun is 22:01).
+5. **Bathroom and closet directions:** the coordinates are authoritative.
+   - In the bathroom, coming in from the hall: the bath is on your right, the vanity on your left, the toilet straight ahead.
+   - The walk-in closet door is on your right as you enter the bedroom.
+6. **Walk-in closet light (`L_closet`) kept.** It is the only addition to the notes' light list.
+7. **No NPCs.** This location has no people, so the NPC section, routines and visits are removed from `house.json`. The sounds that existed only for people are removed too: the clerk's voice, party noise, TV game sound, and the radio behind the clerk. The shower and cooking sounds now play only when you turn the lever or hob on.
+
+New values added for walking (stage 1):
+
+- **Player body:** radius 0.2 m, head height 1.77 m, step height 0.15 m (anything lower doesn't block you; anything starting above your head doesn't either).
+- **Speeds:** walk 1.4 m/s, Shift 2.8 m/s.
+- **Spawn:** just inside the front door (0.6, 0.45), facing into the flat.
+- **Hanging clothes in the walk-in:** 0.40 m deep (x 2.08–2.48, was 2.05–2.55), so a 0.47 m aisle stays free to walk down.
+- **The laundry cupboard is look-in only** (`walkIn: false`). The stacked washer fills it, so you stand at its bifold rather than step inside.
 
 ---
 
-## Clashes in the notes (kept as written, flagged)
+## Clashes in the notes (resolved)
 
-| Where | Notes say | Coordinates give | What I did |
+| Where | Notes say | Coordinates give | Resolution |
 | --- | --- | --- | --- |
-| Main-room desk (D–F) | window on her right, couch behind to her left | window on her left, couch behind to her right | kept coordinates |
-| Main-room desk (D–F) | y 8.4–9.8 | curtain track y 9.75 | kept; check warns |
-| Bathroom | toilet on the right-hand wall; vanity facing you | toilet ahead; vanity on your left | kept coordinates |
-| Bedroom | closet door in the left-hand wall | on your right as you enter | kept coordinates |
-| Player | Charlotte is small | eye height 1.6 m implies about 1.72 m tall | kept 1.6 |
+| Main-room desk (D–F) | window on her right, couch behind to her left | window on her left, couch behind to her right | coordinates kept; prose direction corrected |
+| Main-room desk (D–F) | y 8.4–9.8 | curtain track y 9.75 | desk moved to y 8.3–9.7 |
+| Bathroom | toilet on the right-hand wall; vanity facing you | toilet ahead; vanity on your left | coordinates kept |
+| Bedroom | closet door in the left-hand wall | on your right as you enter | coordinates kept |
+| Player | Charlotte is small | eye height 1.6 m implies about 1.72 m tall | eye height 1.65 m for a generic visitor |
 | Toilet | x 2.45–3.0 against x = 3.0 | the partition face is at 2.95 | kept; it sits 5 cm into the wall, which can't be seen |
 
 ---
@@ -85,6 +96,7 @@ In `house.json`, every item has a `basis` field: `notes`, `assumed`, or `notes+a
 
 - **Bifold:** 0.8 m wide (y 3.5–4.3), same type as the laundry's. Starts closed.
 - **Fittings:** rail 0.4 m in from the doors (x 1.6). Shelf 0.3 m deep at the back. Her coat hangs from the rail and her shoes sit on the floor.
+- **Walking:** you can step part way in; the coat stops you.
 
 ## Bathroom
 
@@ -100,6 +112,7 @@ In `house.json`, every item has a `basis` field: `notes`, `assumed`, or `notes+a
 
 - **Door:** hinged at y = 2.6, swings out into the bedroom (swinging in, it would hit the rail). Starts closed.
 - **Rail:** 0.3 m from the left wall (x 2.3), from the door end to the drawers (y 2.45–4.0).
+- **Hanging clothes:** 0.40 m deep (x 2.08–2.48), leaving a 0.47 m aisle.
 - **Shelf:** 0.55 m deep (x 2.05–2.6).
 - **Four-drawer unit:** 0.9 × 0.35 m, at the far end.
 - **His box:** 0.5 × 0.5 × 0.3 m on the top shelf.
@@ -136,7 +149,7 @@ In `house.json`, every item has a `basis` field: `notes`, `assumed`, or `notes+a
 - **Turntable:** 0.44 × 0.32 m, centred on the shelf. Speakers 0.25 m tall at each end.
 - **The eight records:** upright in the shelf, in shop wrap. Sleeve colour is a placeholder.
 - **Pages on the couch:** cover the seat edge to edge (states D, E).
-- **Main-room desk props (D–F):** chair 0.55 m. Monitor against the wall. Pill strip, phone and mug at the front-left corner. Printouts by them. Laptop at the window end.
+- **Main-room desk props (D–F):** desk y 8.3–9.7. Chair 0.55 m. Monitor against the wall. Pill strip, phone and mug at the corridor end. Printouts by them. Laptop at the window end.
 - **Boxes (E–F):** three open boxes in the window corner, x 3.4–4.6, y 8.5–9.1, 0.45 m tall.
 - **Keys (E):** fob and mailbox key on one ring, middle of the island.
 - **Living ceiling light:** 1500 lm, 4000 K, 0.35 m across.
@@ -182,26 +195,6 @@ In `house.json`, every item has a `basis` field: `notes`, `assumed`, or `notes+a
 - **Volumes and distances:** all the `volume` and `refDistance` values are first guesses.
 - **Optional Surge sounds:** the child's voice and the radio behind the clerk are in, but switched off by default (Derrick decides).
 - **The record:** a placeholder of three soft beats and a silent fourth, since the piece is not chosen.
-
-## NPCs
-
-- **Heights and colours** (placeholders): Venus 1.85, Michael 1.80, Scott 1.78, Hamster 1.75, Paulina 1.68, Daniel 1.80, Darton 1.80, Charlotte 1.72. Plain colours for placeholder figures.
-- **Charlotte is the player by default.** She only appears as an NPC in "observer" mode.
-- **Venus, state A day:** asleep until 07:00. Curtains 07:00. Cooks 07:03–07:35. Packs her breakfast until 07:55. Tidies for 32 minutes (07:55–08:27). Leaves 08:32. Back 18:30 to cook. Couch far end 19:30–22:30. Cold shower 22:30. Bed 22:45.
-- **Charlotte, state A:** up 06:50. Leaves first at 08:00. Back 19:30. Bedroom desk until 22:30. Shower with him. Bed.
-- **Charlotte, states B–F:** B works on the floor by the island and draws the curtains at 10:00. C packs his box 15:00–16:00. D at the main desk, sleeping 03:00–09:00. E Darton visits. F away all day.
-- **Visit times:**
-
-  | Visit | Time |
-  | --- | --- |
-  | Get-together | Wed 17 Jun, 19:00–23:30 |
-  | Paulina | 18 Aug, 18:00–18:45 |
-  | Daniel | 20 Oct, 19:30–20:00 |
-  | Darton | Sat 7 Nov, 14:00–15:10 |
-
-  The intercom buzzes 2 minutes before each visitor reaches the door.
-- **Venus at the get-together:** at the island until 20:30, standing until 21:00, then on the couch's far end.
-- **Visitor spots:** Daniel stands at (3.4, 6.2) looking at the TV wall. Darton fills the kettle at 14:10, then sits on the couch from 14:15 after she lifts the pages.
 
 ## Story states
 

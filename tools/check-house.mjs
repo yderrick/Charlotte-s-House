@@ -1,5 +1,6 @@
 // Checks house.json for layout problems: overlaps, gaps, unreachable rooms,
 // doors in the wrong place, furniture outside rooms or in a door's swing.
+// For a walkability test with the real collision code, see tools/walk-test.mjs.
 // Usage: node tools/check-house.mjs   (exit code 1 on errors; warnings do not fail)
 import { loadHouse, STATES, wallFrame, pointOnWall, placement, inRect, overlap1, roomsById, hingedDoorGeom } from "./lib.mjs";
 
@@ -126,30 +127,11 @@ for (const floor of house.floors) {
   if (hall.w + 0.05 < 1.0) err(`hall is only ${(hall.w + 0.05).toFixed(2)} m wide`);
   console.log(`hall net width ${(hall.w + 0.05).toFixed(2)} m`);
 
-  // 9. NPC spots: inside their room; standing spots not inside solid furniture.
-  for (const [id, s] of Object.entries(house.npcs.spots)) {
-    if (!rooms[s.room]) { err(`spot ${id}: unknown room`); continue; }
-    if (!inRect(s.x, s.y, rooms[s.room])) err(`spot ${id} is outside ${s.room}`);
-    if (s.pose === "standing" || s.pose === "sitting_floor") {
-      for (const st of STATES) for (const p of floor.furniture.map((it) => placement(it, st)).filter((p) => p && SOLID.has(p.type)))
-        if (inRect(s.x, s.y, solidRect(p), -0.02)) warn(`spot ${id} is inside ${p.id} (state ${st})`);
-    }
-  }
 }
 
-// 10. NPC routines cover the whole day with known spots.
-const toMin = (t) => +t.slice(0, 2) * 60 + +t.slice(3);
-for (const c of house.npcs.characters) for (const [st, slots] of Object.entries(c.routine ?? {})) {
-  let t = 0;
-  for (const s of slots) {
-    if (toMin(s.from) !== t) err(`${c.id} routine ${st}: gap or overlap at ${s.from}`);
-    t = toMin(s.to);
-    if (s.spot && !house.npcs.spots[s.spot]) err(`${c.id} routine ${st}: unknown spot ${s.spot}`);
-    if (s.path && !house.npcs.waypoints[s.path]) err(`${c.id} routine ${st}: unknown path ${s.path}`);
-  }
-  if (t !== 1440) err(`${c.id} routine ${st}: does not end at 24:00`);
-}
-for (const e of house.npcs.events) for (const c of e.cast) for (const s of [c, ...(c.sequence ?? [])]) if (s.spot && !house.npcs.spots[s.spot]) err(`event ${e.id}: unknown spot ${s.spot}`);
+// 9. Spawn point inside its room.
+const sp = house.player.spawn;
+if (!house.floors.some((f) => f.rooms.some((r) => r.id === sp.room && inRect(sp.x, sp.y, r)))) err(`player spawn is not in ${sp.room}`);
 
 for (const w of warnings) console.log("WARN ", w);
 for (const e of errors) console.log("ERROR", e);

@@ -115,10 +115,10 @@
 <rect x="597.6" y="542.4" width="25.6" height="35.2" fill="#D6D4CD" stroke="#555" stroke-width="1.2"/>
 <rect x="598.4" y="564.8" width="23.2" height="3.2" fill="#D6D4CD" stroke="#555" stroke-width="1.2"/>
 <rect x="104" y="232" width="520.0" height="12.0" fill="#D6D4CD" stroke="#555" stroke-width="1.2"/>
-<rect x="568" y="248" width="56.0" height="112.0" fill="none" stroke="#B04A2E" stroke-width="1.2" stroke-dasharray="4 3"/>
-<text x="596" y="307.2" font-size="9" text-anchor="middle" fill="#B04A2E">desk (DEF)</text>
-<rect x="520" y="281.6" width="44.0" height="44.8" fill="none" stroke="#B04A2E" stroke-width="1.2" stroke-dasharray="4 3"/>
-<text x="542" y="307.2" font-size="9" text-anchor="middle" fill="#B04A2E">chair (DEF)</text>
+<rect x="568" y="256" width="56.0" height="112.0" fill="none" stroke="#B04A2E" stroke-width="1.2" stroke-dasharray="4 3"/>
+<text x="596" y="315.2" font-size="9" text-anchor="middle" fill="#B04A2E">desk (DEF)</text>
+<rect x="520" y="289.6" width="44.0" height="44.8" fill="none" stroke="#B04A2E" stroke-width="1.2" stroke-dasharray="4 3"/>
+<text x="542" y="315.2" font-size="9" text-anchor="middle" fill="#B04A2E">chair (DEF)</text>
 <line x1="104" y1="252" x2="624" y2="252" stroke="#7A7C80" stroke-width="2" stroke-dasharray="8 3"/>
 <rect x="88" y="1032" width="28.0" height="16.0" fill="#2E2F33" stroke="none"/>
 <rect x="188" y="1032" width="452.0" height="16.0" fill="#2E2F33" stroke="none"/>

@@ -5,7 +5,17 @@
   "type": "module",
   "description": "First-person walk-through of Charlotte's apartment, built from house.json",
   "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "check": "node tools/check-house.mjs",
+    "test:walk": "node tools/walk-test.mjs",
     "floorplan": "node tools/floorplan.mjs"
+  },
+  "dependencies": {
+    "three": "0.185.1"
+  },
+  "devDependencies": {
+    "vite": "6.4.3"
   }
 }
